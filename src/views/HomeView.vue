@@ -2,9 +2,9 @@
   <section class="hero" ref="hero" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
     <!-- Fundo com elementos de código animados -->
     <div class="background-layer" ref="bgLayer">
-      <span 
-        v-for="(symbol, index) in symbols" 
-        :key="index" 
+      <span
+        v-for="(symbol, index) in symbols"
+        :key="index"
         class="code-symbol"
         :style="symbol.style"
       >
@@ -19,16 +19,14 @@
         <span>Núcleo de Estudantes</span>
         <span class="bracket">]</span>
       </div>
-      
+
       <h1 class="title" ref="title">
         <span v-for="(letter, index) in titleLetters" :key="index" class="letter">
           {{ letter }}
         </span>
       </h1>
-      
-      <p class="subtitle" ref="subtitle">
-        Tecnologias &amp; Desenvolvimento Web
-      </p>
+
+      <p class="subtitle" ref="subtitle">Tecnologias &amp; Desenvolvimento Web</p>
     </div>
   </section>
 </template>
@@ -43,26 +41,43 @@ export default {
       titleLetters: ['N', 'e', 'T', 'D', 'W'],
       symbols: [],
       mouseX: 0,
-      mouseY: 0
+      mouseY: 0,
     }
   },
   created() {
     // Gera os símbolos de fundo com posições aleatórias
     const techSymbols = [
-      '</>', '{ }', '=>', 'const', 'let', 'function()', 
-      '<div>', 'CSS', 'HTML', 'JS', 'Vue', 'UX', 'UI', 
-      'API', 'REST', 'git', 'npm', '&&', '||', '==='
+      '</>',
+      '{ }',
+      '=>',
+      'const',
+      'let',
+      'function()',
+      '<div>',
+      'CSS',
+      'HTML',
+      'JS',
+      'Vue',
+      'UX',
+      'UI',
+      'API',
+      'REST',
+      'git',
+      'npm',
+      '&&',
+      '||',
+      '===',
     ]
-    
-    this.symbols = techSymbols.map(text => {
+
+    this.symbols = techSymbols.map((text) => {
       return {
         text,
         style: {
           left: `${Math.random() * 90 + 5}%`,
           top: `${Math.random() * 90 + 5}%`,
           fontSize: `${Math.random() * 1.5 + 0.8}rem`,
-          opacity: Math.random() * 0.15 + 0.05
-        }
+          opacity: Math.random() * 0.15 + 0.05,
+        },
       }
     })
   },
@@ -74,7 +89,7 @@ export default {
     // Animação de entrada dos elementos centrais
     animarEntrada() {
       const tl = anime.timeline({
-        easing: 'easeOutExpo'
+        easing: 'easeOutExpo',
       })
 
       tl.add({
@@ -82,21 +97,27 @@ export default {
         opacity: [0, 1],
         translateY: [-20, 0],
         duration: 800,
-        delay: 200
+        delay: 200,
       })
-      .add({
-        targets: '.letter',
-        opacity: [0, 1],
-        translateY: [50, 0],
-        duration: 1000,
-        delay: anime.stagger(100) // Efeito em cascata nas letras
-      }, '-=600')
-      .add({
-        targets: this.$refs.subtitle,
-        opacity: [0, 1],
-        translateY: [20, 0],
-        duration: 800
-      }, '-=600')
+        .add(
+          {
+            targets: '.letter',
+            opacity: [0, 1],
+            translateY: [50, 0],
+            duration: 1000,
+            delay: anime.stagger(100), // Efeito em cascata nas letras
+          },
+          '-=600',
+        )
+        .add(
+          {
+            targets: this.$refs.subtitle,
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+          },
+          '-=600',
+        )
     },
 
     // Animação contínua dos símbolos de fundo
@@ -110,7 +131,7 @@ export default {
         delay: anime.stagger(100, { from: 'random' }),
         direction: 'alternate',
         loop: true,
-        easing: 'easeInOutSine'
+        easing: 'easeInOutSine',
       })
     },
 
@@ -129,7 +150,7 @@ export default {
         translateX: x * -30,
         translateY: y * -30,
         duration: 1000,
-        easing: 'easeOutQuart'
+        easing: 'easeOutQuart',
       })
     },
 
@@ -140,10 +161,10 @@ export default {
         translateX: 0,
         translateY: 0,
         duration: 1000,
-        easing: 'easeOutExpo'
+        easing: 'easeOutExpo',
       })
-    }
-  }
+    },
+  },
 }
 </script>
 
