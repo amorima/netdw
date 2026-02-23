@@ -1,44 +1,37 @@
-# ./
+# NeTDW - Landing Page
 
-This template should help get you started developing with Vue 3 in Vite.
+Landing page desenvolvida para o Núcleo de Estudantes de Tecnologias e Desenvolvimento Web (NeTDW).
 
-## Recommended IDE Setup
+## Autor
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Nome:** António Amorim
+- **Email:** 40240119@esmad.ipp.pt
+- **Instituição:** ESMAD - Escola Superior de Media Artes e Design
 
-## Recommended Browser Setup
+## Stack Tecnológica
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- **Framework:** Vue.js 3 (Options API)
+- **Build Tool:** Vite
+- **Animações:** anime.js (v3.2.2) para efeitos 3D e Matrix
+- **Estilização:** CSS3 (Flexbox, CSS 3D Transforms)
+- **Tipografia:** Space Grotesk e Space Mono (Google Fonts)
 
-## Customize configuration
+## Instalação e Execução
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Instalar as dependências do projeto:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+Iniciar o servidor de desenvolvimento:
 
 ```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+Compilar para produção:
 
 ```sh
 npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```
