@@ -26,13 +26,14 @@
         </span>
       </h1>
 
-      <p class="subtitle" ref="subtitle">Tecnologias &amp; Desenvolvimento Web</p>
+      <p class="subtitle" ref="subtitle">TECNOLOGIAS E DESENVOLVIMENTO WEB</p>
     </div>
   </section>
 </template>
 
 <script>
 import anime from 'animejs/lib/anime.es.js'
+import '@/assets/home.css'
 
 export default {
   name: 'HomeView',
@@ -67,23 +68,40 @@ export default {
       '&&',
       '||',
       '===',
+      '0101',
+      '1010',
+      'null',
+      'undefined',
+      'async',
+      'await',
+      'import',
+      'export',
+      'class',
+      'return',
+      'true',
+      'false',
     ]
 
-    this.symbols = techSymbols.map((text) => {
+    // Aumentar a quantidade de símbolos para um efeito mais denso
+    const allSymbols = [...techSymbols, ...techSymbols, ...techSymbols]
+
+    this.symbols = allSymbols.map((text) => {
       return {
         text,
         style: {
-          left: `${Math.random() * 90 + 5}%`,
-          top: `${Math.random() * 90 + 5}%`,
-          fontSize: `${Math.random() * 1.5 + 0.8}rem`,
-          opacity: Math.random() * 0.15 + 0.05,
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          fontSize: `${Math.random() * 1.5 + 0.5}rem`,
+          // A opacidade inicial é 0 (definida no CSS)
         },
       }
     })
   },
   mounted() {
-    this.animarEntrada()
-    this.animarFundo()
+    this.$nextTick(() => {
+      this.animarEntrada()
+      this.animarFundo()
+    })
   },
   methods: {
     // Animação de entrada dos elementos centrais
@@ -95,43 +113,55 @@ export default {
       tl.add({
         targets: this.$refs.badge,
         opacity: [0, 1],
-        translateY: [-20, 0],
-        duration: 800,
+        translateY: [-30, 0],
+        translateZ: [100, 0],
+        duration: 1000,
         delay: 200,
       })
         .add(
           {
             targets: '.letter',
             opacity: [0, 1],
-            translateY: [50, 0],
-            duration: 1000,
-            delay: anime.stagger(100), // Efeito em cascata nas letras
+            translateY: [80, 0],
+            translateZ: [200, 0],
+            rotateX: [-100, 0],
+            duration: 1400,
+            delay: anime.stagger(120), // Efeito em cascata nas letras
           },
-          '-=600',
+          '-=800',
         )
         .add(
           {
             targets: this.$refs.subtitle,
             opacity: [0, 1],
-            translateY: [20, 0],
-            duration: 800,
+            translateY: [30, 0],
+            translateZ: [100, 0],
+            duration: 1000,
           },
-          '-=600',
+          '-=1000',
         )
     },
 
     // Animação contínua dos símbolos de fundo
     animarFundo() {
-      anime({
-        targets: '.code-symbol',
-        translateY: () => [anime.random(-15, 15), anime.random(-30, 30)],
-        translateX: () => [anime.random(-15, 15), anime.random(-30, 30)],
-        scale: () => [1, anime.random(1.1, 1.3)],
-        duration: () => anime.random(3000, 6000),
-        delay: anime.stagger(100, { from: 'random' }),
-        direction: 'alternate',
-        loop: true,
-        easing: 'easeInOutSine',
+      // Seleciona todos os símbolos
+      const symbols = document.querySelectorAll('.code-symbol')
+
+      // Anima cada símbolo individualmente para que tenham ciclos independentes
+      // Isto evita que a animação pare e recomece toda ao mesmo tempo
+      symbols.forEach((el) => {
+        anime({
+          targets: el,
+          opacity: [0, anime.random(0.15, 0.4), 0],
+          translateY: [anime.random(-20, 20), anime.random(-60, 60)],
+          translateX: [anime.random(-20, 20), anime.random(-60, 60)],
+          // Usamos apenas translateZ para o efeito de profundidade/zoom, evitando o desfoque do scale
+          translateZ: [anime.random(-500, -100), anime.random(100, 400)],
+          duration: anime.random(4000, 8000),
+          delay: anime.random(0, 5000),
+          loop: true,
+          easing: 'easeInOutSine',
+        })
       })
     },
 
@@ -145,10 +175,21 @@ export default {
       const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       const y = ((event.clientY - rect.top) / rect.height) * 2 - 1
 
+      // Fundo parallax
       anime({
         targets: this.$refs.bgLayer,
-        translateX: x * -30,
-        translateY: y * -30,
+        translateX: x * -40,
+        translateY: y * -40,
+        duration: 1000,
+        easing: 'easeOutQuart',
+      })
+
+      // 3D Tilt no conteúdo
+      anime({
+        targets: '.content',
+        rotateX: y * -15, // tilt up/down
+        rotateY: x * 15, // tilt left/right
+        translateZ: 50,
         duration: 1000,
         easing: 'easeOutQuart',
       })
@@ -163,88 +204,15 @@ export default {
         duration: 1000,
         easing: 'easeOutExpo',
       })
+      anime({
+        targets: '.content',
+        rotateX: 0,
+        rotateY: 0,
+        translateZ: 0,
+        duration: 1000,
+        easing: 'easeOutExpo',
+      })
     },
   },
 }
 </script>
-
-<style scoped>
-.hero {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  height: 100svh; /* Suporte para mobile browsers */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: radial-gradient(circle at center, #111827 0%, #0a0a0a 100%);
-}
-
-.background-layer {
-  position: absolute;
-  inset: -50px; /* Margem para o parallax não mostrar as bordas */
-  pointer-events: none;
-  z-index: 1;
-}
-
-.code-symbol {
-  position: absolute;
-  font-family: 'Space Mono', monospace;
-  color: #38bdf8;
-  user-select: none;
-  will-change: transform;
-}
-
-.content {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0 1rem;
-}
-
-.badge {
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(0.75rem, 2vw, 1rem);
-  color: #9ca3af;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0;
-}
-
-.bracket {
-  color: #38bdf8;
-  font-weight: 700;
-}
-
-.title {
-  font-size: clamp(4rem, 15vw, 12rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  display: flex;
-  gap: 2px;
-}
-
-.letter {
-  display: inline-block;
-  background: linear-gradient(135deg, #ffffff 0%, #93c5fd 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
-.subtitle {
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  font-weight: 400;
-  color: #9ca3af;
-  letter-spacing: 0.05em;
-  opacity: 0;
-}
-</style>
