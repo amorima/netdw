@@ -21,6 +21,6 @@ jobs:
 
       - name: Transferência para o diretório web
         run: |
-          sudo mkdir -p /var/www/netdw
-          sudo rm -rf /var/www/netdw/*
-          sudo cp -r .output/public/* /var/www/netdw/
+          mkdir -p /var/www/netdw
+          rm -rf /var/www/netdw/*
+          cp -r .output/public/* /var/www/netdw/
