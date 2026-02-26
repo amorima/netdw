@@ -1,0 +1,26 @@
+# Definição do evento de acionamento do fluxo de trabalho contínuo
+name: Integracao continua
+on:
+  push:
+    branches:
+      - main
+
+# Declaração dos trabalhos a executar no agente local
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Obtenção do código fonte
+        uses: actions/checkout@v4
+
+      - name: Instalação de dependências
+        run: npm install
+
+      - name: Geração dos ficheiros estáticos
+        run: npm run generate
+
+      - name: Transferência para o diretório web
+        run: |
+          sudo mkdir -p /var/www/netdw
+          sudo rm -rf /var/www/netdw/*
+          sudo cp -r .output/public/* /var/www/netdw/

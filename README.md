@@ -1,37 +1,75 @@
-# NeTDW - Landing Page
+# Nuxt Minimal Starter
 
-Landing page desenvolvida para o Núcleo de Estudantes de Tecnologias e Desenvolvimento Web (NeTDW).
+Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
-## Autor
+## Setup
 
-- **Nome:** António Amorim
-- **Email:** 40240119@esmad.ipp.pt
-- **Instituição:** ESMAD - Escola Superior de Media Artes e Design
+Make sure to install dependencies:
 
-## Stack Tecnológica
-
-- **Framework:** Vue.js 3 (Options API)
-- **Build Tool:** Vite
-- **Animações:** anime.js (v3.2.2) para efeitos 3D e Matrix
-- **Estilização:** CSS3 (Flexbox, CSS 3D Transforms)
-- **Tipografia:** Space Grotesk e Space Mono (Google Fonts)
-
-## Instalação e Execução
-
-Instalar as dependências do projeto:
-
-```sh
+```bash
+# npm
 npm install
+
+# pnpm
+pnpm install
+
+# yarn
+yarn install
+
+# bun
+bun install
 ```
 
-Iniciar o servidor de desenvolvimento:
+## Development Server
 
-```sh
+Start the development server on `http://localhost:3000`:
+
+```bash
+# npm
 npm run dev
+
+# pnpm
+pnpm dev
+
+# yarn
+yarn dev
+
+# bun
+bun run dev
 ```
 
-Compilar para produção:
+## Production
 
-```sh
+Build the application for production:
+
+```bash
+# npm
 npm run build
+
+# pnpm
+pnpm build
+
+# yarn
+yarn build
+
+# bun
+bun run build
 ```
+
+Locally preview production build:
+
+```bash
+# npm
+npm run preview
+
+# pnpm
+pnpm preview
+
+# yarn
+yarn preview
+
+# bun
+bun run preview
+```
+
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
