@@ -8,7 +8,6 @@ const { data: noticias, error } = await useAsyncData("noticias", () => {
   return directus.request(readItems("noticias"));
 });
 
-// Função simples para gerar o URL da imagem com base no ID fornecido pela API
 const getImageUrl = (fileId) => {
   if (!fileId) return "https://via.placeholder.com/400x200?text=Sem+Capa";
   return `${urlDirectus}/assets/${fileId}`;
