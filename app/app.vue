@@ -1,21 +1,22 @@
 <script setup>
 import { createDirectus, rest, readItems } from "@directus/sdk";
 
-const directus = createDirectus("https://api.netdw.tech").with(rest());
+const urlDirectus = "https://api.netdw.tech";
+const directus = createDirectus(urlDirectus).with(rest());
 
-// Adição de verificação de erro para diagnóstico
 const { data: noticias, error } = await useAsyncData("noticias", () => {
   return directus.request(readItems("noticias"));
 });
 
-// Registo de erro na consola do browser para facilitar a depuração
-if (error.value) {
-  console.error("Erro ao carregar dados do Directus:", error.value);
-}
+// Função simples para gerar o URL da imagem com base no ID fornecido pela API
+const getImageUrl = (fileId) => {
+  if (!fileId) return "https://via.placeholder.com/400x200?text=Sem+Capa";
+  return `${urlDirectus}/assets/${fileId}`;
+};
 </script>
 
 <template>
-  <div>
+  <div style="max-width: 800px; margin: 0 auto; font-family: sans-serif">
     <h1>Últimas notícias</h1>
 
     <div v-if="error" style="color: red">
@@ -26,13 +27,28 @@ if (error.value) {
       <div
         v-for="item in noticias"
         :key="item.id"
-        style="margin-bottom: 20px; border-bottom: 1px solid #ccc"
+        style="
+          margin-bottom: 40px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 20px;
+        "
       >
-        <h2>{{ item.titulo }}</h2>
-        <div v-html="item.conteudo"></div>
+        <img
+          :src="getImageUrl(item.capa)"
+          alt="Capa da notícia"
+          style="
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+          "
+        />
+
+        <h2 style="margin-top: 15px">{{ item.titulo }}</h2>
+        <div v-html="item.conteudo" style="line-height: 1.6; color: #333"></div>
       </div>
     </div>
 
-    <p v-else>A carregar notícias ou sem conteúdo disponível...</p>
+    <p v-else>A carregar notícias...</p>
   </div>
 </template>
