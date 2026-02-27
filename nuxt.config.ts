@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     directusUrl: "https://api.netdw.tech",
     directusToken: "",
-    directusContactCollection: "contact_messages",
+    directusContactCollection: "contact_submissions",
     contactMinFillTimeMs: 3500,
     contactRateLimitWindowMs: 600000,
     contactRateLimitMaxRequests: 5,

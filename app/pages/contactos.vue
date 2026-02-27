@@ -28,10 +28,9 @@ export default defineNuxtComponent({
       if (
         !this.formData.name.trim() ||
         !this.formData.email.trim() ||
-        !this.formData.subject.trim() ||
         !this.formData.message.trim()
       ) {
-        this.formError = "Preenche todos os campos do formulário.";
+        this.formError = "Preenche nome, email e mensagem.";
         return;
       }
 
@@ -52,7 +51,9 @@ export default defineNuxtComponent({
           },
         });
 
-        this.formSuccess = `Mensagem enviada com sucesso. ID: ${response.id}`;
+        this.formSuccess = response?.id
+          ? `Mensagem enviada com sucesso. ID: ${response.id}`
+          : "Mensagem enviada com sucesso.";
         this.formData = {
           name: "",
           email: "",
@@ -126,8 +127,8 @@ export default defineNuxtComponent({
           </div>
 
           <label>
-            Assunto
-            <input v-model="formData.subject" type="text" required />
+            Assunto (opcional)
+            <input v-model="formData.subject" type="text" />
           </label>
 
           <label>

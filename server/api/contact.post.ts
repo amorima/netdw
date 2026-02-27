@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (!name || !email || !subject || !message) {
+  if (!name || !email || !message) {
     throw createError({
       statusCode: 400,
       statusMessage: "Campos obrigatórios em falta.",
@@ -96,26 +96,31 @@ export default defineEventHandler(async (event) => {
   const directusUrl = String(config.directusUrl || "").replace(/\/$/, "");
   const directusToken = String(config.directusToken || "").trim();
   const contactCollection = String(
-    config.directusContactCollection || "contact_messages",
+    config.directusContactCollection || "contact_submissions",
   ).trim();
 
-  if (!directusUrl || !directusToken || !contactCollection) {
+  if (!directusUrl || !contactCollection) {
     throw createError({
       statusCode: 500,
       statusMessage: "Configuração do Directus em falta no servidor.",
     });
   }
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (directusToken) {
+    headers.Authorization = `Bearer ${directusToken}`;
+  }
+
   const response = await fetch(`${directusUrl}/items/${contactCollection}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${directusToken}`,
-    },
+    headers,
     body: JSON.stringify({
       name,
       email,
-      subject,
+      ...(subject ? { subject } : {}),
       message,
     }),
   });
@@ -144,14 +149,13 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const responseData = await response.json();
-  const createdId = responseData?.data?.id;
+  let createdId: string | null = null;
 
-  if (!createdId) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Mensagem não confirmada no Directus.",
-    });
+  try {
+    const responseData = await response.json();
+    createdId = responseData?.data?.id || null;
+  } catch {
+    createdId = null;
   }
 
   return { ok: true, id: createdId };
