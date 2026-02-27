@@ -4,6 +4,7 @@ import {
   pickFirstValue,
   stripHtml,
 } from "../utils/directus-content";
+import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
   data() {
@@ -33,6 +34,8 @@ export default defineNuxtComponent({
     async fetchOrgaos() {
       this.isLoading = true;
       this.errorMessage = "";
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
         const { items } = await readFromCollections(
@@ -65,6 +68,7 @@ export default defineNuxtComponent({
         this.errorMessage = "Não foi possível carregar os órgãos do Directus.";
       } finally {
         this.isLoading = false;
+        stopLoading();
       }
     },
   },
@@ -76,8 +80,7 @@ export default defineNuxtComponent({
     <p class="kicker">Órgãos</p>
     <h1>Estrutura organizativa</h1>
 
-    <p v-if="isLoading" class="status-message">A carregar órgãos...</p>
-    <p v-else-if="errorMessage" class="status-message">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
     <div class="grid">
       <article v-for="orgao in orgaos" :key="orgao.title" class="card">

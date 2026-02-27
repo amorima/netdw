@@ -65,6 +65,8 @@ export default defineNuxtComponent({
       <slot />
     </main>
 
+    <GlobalLoading />
+
     <footer class="footer">
       <div class="container footer-grid">
         <div>

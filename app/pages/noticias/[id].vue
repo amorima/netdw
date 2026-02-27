@@ -1,5 +1,6 @@
 <script>
 import { createDirectus, rest, readItem } from "@directus/sdk";
+import { useGlobalLoading } from "../../composables/useGlobalLoading";
 
 const urlDirectus = "https://api.netdw.tech";
 const directus = createDirectus(urlDirectus).with(rest());
@@ -24,6 +25,8 @@ export default defineNuxtComponent({
     async fetchNoticia() {
       this.isLoading = true;
       this.errorMessage = "";
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
         const id = this.$route.params.id;
@@ -33,6 +36,7 @@ export default defineNuxtComponent({
         this.noticia = null;
       } finally {
         this.isLoading = false;
+        stopLoading();
       }
     },
     getImageUrl(fileId) {
@@ -60,8 +64,7 @@ export default defineNuxtComponent({
 
 <template>
   <section class="container page-section">
-    <p v-if="isLoading" class="state-message">A carregar notícia...</p>
-    <p v-else-if="errorMessage" class="state-message error">
+    <p v-if="errorMessage" class="state-message error">
       {{ errorMessage }}
     </p>
 
@@ -76,7 +79,7 @@ export default defineNuxtComponent({
       <NuxtLink to="/noticias" class="back-link">Voltar às notícias</NuxtLink>
     </article>
 
-    <p v-else class="state-message">Notícia não encontrada.</p>
+    <p v-else-if="!isLoading" class="state-message">Notícia não encontrada.</p>
   </section>
 </template>
 

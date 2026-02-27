@@ -4,30 +4,35 @@ import {
   pickFirstValue,
   stripHtml,
 } from "../utils/directus-content";
+import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
   data() {
     return {
       isLoading: true,
       errorMessage: "",
-      eventos: [
-        {
-          titulo: "Sessão de Onboarding",
-          data: "Março",
-          descricao: "Apresentação do núcleo e integração de novos estudantes.",
-        },
-        {
-          titulo: "Workshop Frontend",
-          data: "Abril",
-          descricao: "Prática de interfaces web com foco em usabilidade.",
-        },
-        {
-          titulo: "Mesa Redonda Tech",
-          data: "Maio",
-          descricao: "Conversa com convidados sobre tendências do setor.",
-        },
-      ],
+      eventos: [],
     };
+  },
+  computed: {
+    futureEvents() {
+      const now = Date.now();
+      return this.eventos.filter(
+        (evento) => evento.timestamp !== null && evento.timestamp >= now,
+      );
+    },
+    pastEvents() {
+      const now = Date.now();
+      return this.eventos.filter(
+        (evento) => evento.timestamp !== null && evento.timestamp < now,
+      );
+    },
+    undatedEvents() {
+      return this.eventos.filter((evento) => evento.timestamp === null);
+    },
+    hasAnyEvents() {
+      return this.eventos.length > 0;
+    },
   },
   created() {
     this.fetchEventos();
@@ -36,43 +41,79 @@ export default defineNuxtComponent({
     async fetchEventos() {
       this.isLoading = true;
       this.errorMessage = "";
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
-        const { items } = await readFromCollections(["eventos", "evento"], {
-          limit: 24,
-          sort: ["data", "sort", "-date_created"],
-        });
+        const { items } = await readFromCollections(
+          ["agenda", "eventos", "evento"],
+          {
+            limit: 6,
+            sort: ["-data_evento", "-data", "-date_created", "sort"],
+          },
+        );
 
-        if (items.length) {
-          this.eventos = items.map((item) => {
-            const dateLabel = pickFirstValue(
+        this.eventos = items.map((item) => {
+          const rawDate = pickFirstValue(
+            item,
+            ["data_evento", "data", "date", "mes"],
+            "",
+          );
+          const dateInfo = this.parseEventDate(rawDate);
+
+          return {
+            id:
+              item.id ||
+              `${pickFirstValue(item, ["titulo", "title", "nome", "name"], "evento")}-${rawDate}`,
+            titulo: pickFirstValue(
               item,
-              ["data", "date", "mes"],
-              "Sem data",
-            );
-
-            return {
-              titulo: pickFirstValue(
+              ["titulo", "title", "nome", "name"],
+              "Evento",
+            ),
+            data: dateInfo.label,
+            timestamp: dateInfo.timestamp,
+            descricao: stripHtml(
+              pickFirstValue(
                 item,
-                ["titulo", "title", "nome", "name"],
-                "Evento",
+                ["texto", "descricao", "description", "conteudo", "content"],
+                "Conteúdo deste evento em atualização.",
               ),
-              data: dateLabel,
-              descricao: stripHtml(
-                pickFirstValue(
-                  item,
-                  ["descricao", "description", "conteudo", "content"],
-                  "Conteúdo deste evento em atualização.",
-                ),
-              ),
-            };
-          });
-        }
+            ),
+          };
+        });
       } catch (error) {
         this.errorMessage = "Não foi possível carregar os eventos do Directus.";
       } finally {
         this.isLoading = false;
+        stopLoading();
       }
+    },
+    parseEventDate(dateValue) {
+      if (!dateValue) {
+        return {
+          label: "Data e hora a anunciar",
+          timestamp: null,
+        };
+      }
+
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) {
+        return {
+          label: String(dateValue),
+          timestamp: null,
+        };
+      }
+
+      return {
+        label: new Intl.DateTimeFormat("pt-PT", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date),
+        timestamp: date.getTime(),
+      };
     },
   },
 });
@@ -83,16 +124,49 @@ export default defineNuxtComponent({
     <p class="kicker">Eventos</p>
     <h1>Agenda do núcleo</h1>
 
-    <p v-if="isLoading" class="status-message">A carregar eventos...</p>
-    <p v-else-if="errorMessage" class="status-message">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
+    <p v-else-if="!isLoading && !hasAnyEvents" class="status-message">
+      Sem eventos de momento.
+    </p>
 
-    <div class="grid">
-      <article v-for="evento in eventos" :key="evento.titulo" class="card">
-        <p class="date">{{ evento.data }}</p>
-        <h2>{{ evento.titulo }}</h2>
-        <p>{{ evento.descricao }}</p>
-      </article>
-    </div>
+    <template v-else>
+      <div v-if="futureEvents.length" class="section-block">
+        <h2 class="section-title">Próximos eventos</h2>
+        <div class="grid">
+          <article v-for="evento in futureEvents" :key="evento.id" class="card">
+            <p class="date">{{ evento.data }}</p>
+            <h3>{{ evento.titulo }}</h3>
+            <p>{{ evento.descricao }}</p>
+          </article>
+        </div>
+      </div>
+
+      <div v-if="undatedEvents.length" class="section-block">
+        <h2 class="section-title">Eventos sem data definida</h2>
+        <div class="grid">
+          <article
+            v-for="evento in undatedEvents"
+            :key="evento.id"
+            class="card"
+          >
+            <p class="date">{{ evento.data }}</p>
+            <h3>{{ evento.titulo }}</h3>
+            <p>{{ evento.descricao }}</p>
+          </article>
+        </div>
+      </div>
+
+      <div v-if="pastEvents.length" class="section-block">
+        <h2 class="section-title">Eventos passados</h2>
+        <div class="grid">
+          <article v-for="evento in pastEvents" :key="evento.id" class="card">
+            <p class="date">{{ evento.data }}</p>
+            <h3>{{ evento.titulo }}</h3>
+            <p>{{ evento.descricao }}</p>
+          </article>
+        </div>
+      </div>
+    </template>
   </section>
 </template>
 
@@ -121,6 +195,16 @@ h1 {
   color: #c9d8f8;
 }
 
+.section-block {
+  margin-top: 1.2rem;
+}
+
+.section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  color: #dce7ff;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -140,7 +224,7 @@ h1 {
   font-size: 0.86rem;
 }
 
-.card h2 {
+.card h3 {
   margin: 0.55rem 0 0;
   font-size: 1.06rem;
 }

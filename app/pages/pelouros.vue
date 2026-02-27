@@ -4,6 +4,7 @@ import {
   pickFirstValue,
   stripHtml,
 } from "../utils/directus-content";
+import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
   data() {
@@ -45,6 +46,8 @@ export default defineNuxtComponent({
     async fetchPelouros() {
       this.isLoading = true;
       this.errorMessage = "";
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
         const { items } = await readFromCollections(["pelouros", "pelouro"], {
@@ -75,6 +78,7 @@ export default defineNuxtComponent({
           "Não foi possível carregar os pelouros do Directus.";
       } finally {
         this.isLoading = false;
+        stopLoading();
       }
     },
   },
@@ -86,8 +90,7 @@ export default defineNuxtComponent({
     <p class="kicker">Pelouros</p>
     <h1>Áreas de atuação</h1>
 
-    <p v-if="isLoading" class="status-message">A carregar pelouros...</p>
-    <p v-else-if="errorMessage" class="status-message">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
     <div class="grid">
       <article v-for="item in pelouros" :key="item.title" class="card">

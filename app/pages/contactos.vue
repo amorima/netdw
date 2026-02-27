@@ -1,4 +1,6 @@
 <script>
+import { useGlobalLoading } from "../composables/useGlobalLoading";
+
 export default defineNuxtComponent({
   data() {
     return {
@@ -34,6 +36,8 @@ export default defineNuxtComponent({
       }
 
       this.isSubmitting = true;
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
         const response = await $fetch("/api/contact", {
@@ -65,6 +69,7 @@ export default defineNuxtComponent({
           "Não foi possível enviar a mensagem. Tenta novamente.";
       } finally {
         this.isSubmitting = false;
+        stopLoading();
       }
     },
   },
@@ -144,9 +149,7 @@ export default defineNuxtComponent({
           <p v-if="formError" class="form-error">{{ formError }}</p>
           <p v-if="formSuccess" class="form-success">{{ formSuccess }}</p>
 
-          <button type="submit" :disabled="isSubmitting">
-            {{ isSubmitting ? "A enviar..." : "Submeter" }}
-          </button>
+          <button type="submit" :disabled="isSubmitting">Submeter</button>
         </form>
       </article>
 

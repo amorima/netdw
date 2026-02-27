@@ -4,6 +4,7 @@ import {
   pickFirstValue,
   stripHtml,
 } from "../utils/directus-content";
+import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
   data() {
@@ -26,6 +27,8 @@ export default defineNuxtComponent({
     async fetchSobreContent() {
       this.isLoading = true;
       this.errorMessage = "";
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
 
       try {
         const { items } = await readFromCollections(
@@ -59,6 +62,7 @@ export default defineNuxtComponent({
           "Não foi possível carregar os conteúdos do Directus.";
       } finally {
         this.isLoading = false;
+        stopLoading();
       }
     },
     cleanText(value) {
@@ -73,10 +77,9 @@ export default defineNuxtComponent({
     <p class="kicker">Sobre NeTDW</p>
     <h1>{{ content.title }}</h1>
 
-    <p v-if="isLoading">A carregar conteúdo...</p>
-    <p v-else-if="errorMessage">{{ errorMessage }}</p>
+    <p v-if="errorMessage">{{ errorMessage }}</p>
 
-    <template v-else>
+    <template v-else-if="!isLoading">
       <p>{{ cleanText(content.paragraph1) }}</p>
       <p>{{ cleanText(content.paragraph2) }}</p>
     </template>
