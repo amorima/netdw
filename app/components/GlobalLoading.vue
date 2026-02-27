@@ -1,13 +1,19 @@
 <script setup>
+import { onMounted, ref } from "vue";
 import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 const { isLoading } = useGlobalLoading();
+const isMounted = ref(false);
+
+onMounted(() => {
+  isMounted.value = true;
+});
 </script>
 
 <template>
   <Transition name="loading-fade">
     <div
-      v-if="isLoading"
+      v-if="isMounted && isLoading"
       class="global-loading"
       aria-live="polite"
       aria-label="A carregar"

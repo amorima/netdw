@@ -78,7 +78,7 @@ export default defineNuxtComponent({
 
         <div>
           <h3>Links rápidos</h3>
-          <ul>
+          <ul class="quick-links">
             <li v-for="item in footerLinks" :key="item.to">
               <NuxtLink :to="item.to">{{ item.label }}</NuxtLink>
             </li>
@@ -253,6 +253,12 @@ export default defineNuxtComponent({
   color: #9caed8;
 }
 
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.9rem;
+}
+
 .contact-list li {
   display: flex;
   align-items: flex-start;
@@ -315,6 +321,10 @@ export default defineNuxtComponent({
   }
 
   .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-links {
     grid-template-columns: 1fr;
   }
 }
