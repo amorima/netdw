@@ -19,7 +19,11 @@ export default defineNuxtComponent({
 </script>
 
 <template>
-  <div v-if="variant === 'hero'" class="directus-skeleton-hero" aria-hidden="true">
+  <div
+    v-if="variant === 'hero'"
+    class="directus-skeleton-hero"
+    aria-hidden="true"
+  >
     <div class="skeleton-line skeleton-kicker"></div>
     <div class="skeleton-line skeleton-title"></div>
     <div class="skeleton-line skeleton-title short"></div>

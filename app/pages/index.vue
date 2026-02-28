@@ -581,7 +581,6 @@ export default defineNuxtComponent({
   overflow: hidden;
 }
 
-
 .news-card img {
   width: 100%;
   height: 180px;
@@ -639,7 +638,6 @@ export default defineNuxtComponent({
   outline: 2px solid #d2e3ff;
   outline-offset: 2px;
 }
-
 
 @media (max-width: 960px) {
   .highlights,

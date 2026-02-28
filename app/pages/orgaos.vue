@@ -83,11 +83,7 @@ export default defineNuxtComponent({
 
     <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
-    <DirectusSkeleton
-      v-if="isLoading"
-      variant="cards"
-      :count="skeletonCount"
-    />
+    <DirectusSkeleton v-if="isLoading" variant="cards" :count="skeletonCount" />
 
     <div v-else class="grid">
       <article v-for="orgao in orgaos" :key="orgao.title" class="card">

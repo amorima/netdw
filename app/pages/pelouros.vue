@@ -2,7 +2,6 @@
 import {
   readFromCollections,
   pickFirstValue,
-  stripHtml,
 } from "../utils/directus-content";
 import { useGlobalLoading } from "../composables/useGlobalLoading";
 
@@ -12,32 +11,7 @@ export default defineNuxtComponent({
       isLoading: true,
       errorMessage: "",
       skeletonCount: 6,
-      pelouros: [
-        {
-          title: "Formação",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-        {
-          title: "Eventos",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-        {
-          title: "Comunicação",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-        {
-          title: "Parcerias",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-        {
-          title: "Apoio ao Estudante",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-        {
-          title: "Projetos",
-          text: "Conteúdo detalhado deste pelouro será publicado em breve.",
-        },
-      ],
+      pelouros: [],
     };
   },
   created() {
@@ -56,24 +30,27 @@ export default defineNuxtComponent({
           sort: ["sort", "-date_created"],
         });
 
-        if (items.length) {
-          this.pelouros = items.map((item) => {
-            return {
-              title: pickFirstValue(
-                item,
-                ["titulo", "title", "nome", "name"],
-                "Pelouro",
-              ),
-              text: stripHtml(
-                pickFirstValue(
-                  item,
-                  ["descricao", "description", "conteudo", "content"],
-                  "Conteúdo deste pelouro em atualização.",
-                ),
-              ),
-            };
-          });
-        }
+        this.pelouros = items.map((item) => {
+          return {
+            title: pickFirstValue(
+              item,
+              ["titulo", "title", "nome", "name"],
+              "Pelouro",
+            ),
+            textHtml: pickFirstValue(
+              item,
+              [
+                "desc",
+                "texto",
+                "descricao",
+                "description",
+                "conteudo",
+                "content",
+              ],
+              "",
+            ),
+          };
+        });
       } catch (error) {
         this.errorMessage =
           "Não foi possível carregar os pelouros do Directus.";
@@ -93,16 +70,16 @@ export default defineNuxtComponent({
 
     <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
-    <DirectusSkeleton
-      v-if="isLoading"
-      variant="cards"
-      :count="skeletonCount"
-    />
+    <DirectusSkeleton v-if="isLoading" variant="cards" :count="skeletonCount" />
+
+    <p v-else-if="!pelouros.length" class="status-message">
+      Ainda não existem pelouros publicados.
+    </p>
 
     <div v-else class="grid">
       <article v-for="item in pelouros" :key="item.title" class="card">
         <h2>{{ item.title }}</h2>
-        <p>{{ item.text }}</p>
+        <div class="card-text" v-html="item.textHtml"></div>
       </article>
     </div>
   </section>
@@ -151,10 +128,18 @@ h1 {
   font-size: 1.06rem;
 }
 
-.card p {
-  margin: 0.7rem 0 0;
+.card-text {
+  margin-top: 0.7rem;
   color: #c9d8f8;
   line-height: 1.5;
+}
+
+.card-text :deep(p) {
+  margin: 0 0 0.7rem;
+}
+
+.card-text :deep(p:last-child) {
+  margin-bottom: 0;
 }
 
 @media (max-width: 960px) {

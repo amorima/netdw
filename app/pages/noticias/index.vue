@@ -137,9 +137,7 @@ export default defineNuxtComponent({
       </article>
     </div>
 
-    <p v-else class="state-message">
-      Ainda não existem notícias publicadas.
-    </p>
+    <p v-else class="state-message">Ainda não existem notícias publicadas.</p>
   </section>
 </template>
 
