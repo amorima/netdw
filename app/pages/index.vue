@@ -863,9 +863,9 @@ export default defineNuxtComponent({
 
 .join-cta {
   margin-bottom: 3.1rem;
-  padding: 2rem 0;
-  border-top: 1px solid rgba(161, 195, 255, 0.42);
-  border-bottom: 1px solid rgba(161, 195, 255, 0.42);
+  padding: 3.65rem 0;
+  border-top: 2px solid rgba(161, 195, 255, 0.52);
+  border-bottom: 2px solid rgba(161, 195, 255, 0.52);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
