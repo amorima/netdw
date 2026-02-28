@@ -34,53 +34,57 @@ export default defineNuxtComponent({
           },
         );
 
-        this.members = (Array.isArray(items) ? items : []).map((item, index) => {
-          const name = pickFirstValue(
-            item,
-            ["nome", "name", "titulo", "title"],
-            "",
-          );
-          const groupFunction = pickFirstValue(
-            item,
-            ["funcao", "func", "group", "grupo"],
-            "",
-          );
-          const cardRole = pickFirstValue(
-            item,
-            ["cargo", "role", "funcao", "func"],
-            "",
-          );
-          const rawSort = item?.sort;
-          const hasManualSort =
-            rawSort !== null && rawSort !== undefined && String(rawSort).trim() !== "";
-          const parsedSort = hasManualSort ? Number(rawSort) : Number.NaN;
-
-          return {
-            id:
-              item?.id ||
-              `${name}-${cardRole}-${groupFunction}-${Math.random().toString(16).slice(2)}`,
-            sourceIndex: index,
-            hasManualSort: hasManualSort && Number.isFinite(parsedSort),
-            manualSort:
-              hasManualSort && Number.isFinite(parsedSort)
-                ? parsedSort
-                : Number.MAX_SAFE_INTEGER,
-            name,
-            groupFunction,
-            cardRole,
-            academicYear: pickFirstValue(
+        this.members = (Array.isArray(items) ? items : []).map(
+          (item, index) => {
+            const name = pickFirstValue(
               item,
-              ["ano_letivo", "anoLetivo", "ano", "academic_year", "year"],
-              "Sem ano letivo",
-            ),
-            email: pickFirstValue(item, ["contacto", "email", "mail"], ""),
-            photo: pickFirstValue(
-              item,
-              ["foto", "imagem", "image", "avatar", "photo", "fotografia"],
+              ["nome", "name", "titulo", "title"],
               "",
-            ),
-          };
-        });
+            );
+            const groupFunction = pickFirstValue(
+              item,
+              ["funcao", "func", "group", "grupo"],
+              "",
+            );
+            const cardRole = pickFirstValue(
+              item,
+              ["cargo", "role", "funcao", "func"],
+              "",
+            );
+            const rawSort = item?.sort;
+            const hasManualSort =
+              rawSort !== null &&
+              rawSort !== undefined &&
+              String(rawSort).trim() !== "";
+            const parsedSort = hasManualSort ? Number(rawSort) : Number.NaN;
+
+            return {
+              id:
+                item?.id ||
+                `${name}-${cardRole}-${groupFunction}-${Math.random().toString(16).slice(2)}`,
+              sourceIndex: index,
+              hasManualSort: hasManualSort && Number.isFinite(parsedSort),
+              manualSort:
+                hasManualSort && Number.isFinite(parsedSort)
+                  ? parsedSort
+                  : Number.MAX_SAFE_INTEGER,
+              name,
+              groupFunction,
+              cardRole,
+              academicYear: pickFirstValue(
+                item,
+                ["ano_letivo", "anoLetivo", "ano", "academic_year", "year"],
+                "Sem ano letivo",
+              ),
+              email: pickFirstValue(item, ["contacto", "email", "mail"], ""),
+              photo: pickFirstValue(
+                item,
+                ["foto", "imagem", "image", "avatar", "photo", "fotografia"],
+                "",
+              ),
+            };
+          },
+        );
 
         this.yearsData = this.buildYearsData(this.members);
         this.openYear = this.yearsData[0]?.year || "";
@@ -278,11 +282,7 @@ export default defineNuxtComponent({
 
     <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
-    <DirectusSkeleton
-      v-if="isLoading"
-      variant="orgaos"
-      :count="2"
-    />
+    <DirectusSkeleton v-if="isLoading" variant="orgaos" :count="2" />
 
     <p v-else-if="!yearsData.length" class="status-message">
       Ainda não existem órgãos publicados.

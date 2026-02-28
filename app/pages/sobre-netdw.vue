@@ -1,9 +1,5 @@
 <script>
-import {
-  readFromCollections,
-  pickFirstValue,
-  stripHtml,
-} from "../utils/directus-content";
+import { readFromCollections, pickFirstValue } from "../utils/directus-content";
 import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
@@ -11,13 +7,7 @@ export default defineNuxtComponent({
     return {
       isLoading: true,
       errorMessage: "",
-      content: {
-        title: "Quem somos",
-        paragraph1:
-          "O NeTDW é o núcleo de estudantes de Tecnologias e Desenvolvimento Web, orientado para representação estudantil, dinamização de atividades e valorização do percurso académico dos estudantes do curso.",
-        paragraph2:
-          "Esta página é independente e vai receber conteúdos do Directus assim que forem publicados no teu backend.",
-      },
+      content: null,
     };
   },
   created() {
@@ -31,10 +21,10 @@ export default defineNuxtComponent({
       const stopLoading = start();
 
       try {
-        const { items } = await readFromCollections(
-          ["sobre_netdw", "sobre", "paginas_sobre"],
-          { limit: 1 },
-        );
+        const { items } = await readFromCollections(["sobre"], {
+          limit: 1,
+          sort: ["sort", "-date_created"],
+        });
 
         if (items.length) {
           const firstItem = items[0];
@@ -42,18 +32,13 @@ export default defineNuxtComponent({
           this.content = {
             title: pickFirstValue(
               firstItem,
-              ["titulo", "title"],
-              this.content.title,
+              ["titulo_sobre", "titulo", "title"],
+              "",
             ),
-            paragraph1: pickFirstValue(
+            body: pickFirstValue(
               firstItem,
-              ["resumo", "descricao", "description", "conteudo"],
-              this.content.paragraph1,
-            ),
-            paragraph2: pickFirstValue(
-              firstItem,
-              ["detalhe", "detalhes", "texto", "content"],
-              this.content.paragraph2,
+              ["texto_sobre", "texto", "content"],
+              "",
             ),
           };
         }
@@ -65,9 +50,6 @@ export default defineNuxtComponent({
         stopLoading();
       }
     },
-    cleanText(value) {
-      return stripHtml(value);
-    },
   },
 });
 </script>
@@ -75,15 +57,21 @@ export default defineNuxtComponent({
 <template>
   <section class="container page-section">
     <p class="kicker">Sobre NeTDW</p>
-    <h1 v-if="!isLoading">{{ content.title }}</h1>
 
     <p v-if="errorMessage">{{ errorMessage }}</p>
 
-    <DirectusSkeleton v-else-if="isLoading" variant="text" />
+    <DirectusSkeleton v-else-if="isLoading" variant="sobre" />
+
+    <p
+      v-else-if="!content || (!content.title && !content.body)"
+      class="status-message"
+    >
+      Ainda não existe conteúdo publicado na coleção sobre.
+    </p>
 
     <template v-else>
-      <p>{{ cleanText(content.paragraph1) }}</p>
-      <p>{{ cleanText(content.paragraph2) }}</p>
+      <h1>{{ content.title }}</h1>
+      <div class="about-content" v-html="content.body"></div>
     </template>
   </section>
 </template>
@@ -113,5 +101,30 @@ p {
   max-width: 780px;
   color: #c9d8f8;
   line-height: 1.65;
+}
+
+.status-message {
+  color: #c9d8f8;
+}
+
+.about-content {
+  max-width: 780px;
+  color: #c9d8f8;
+  line-height: 1.65;
+}
+
+.about-content :deep(p) {
+  margin: 0 0 1rem;
+}
+
+.about-content :deep(img) {
+  display: block;
+  max-width: min(100%, 720px);
+  max-height: 420px;
+  width: auto;
+  height: auto;
+  border-radius: 0.55rem;
+  margin: 0.75rem 0 1rem;
+  object-fit: cover;
 }
 </style>

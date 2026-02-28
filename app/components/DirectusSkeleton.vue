@@ -61,6 +61,19 @@ export default defineNuxtComponent({
   </div>
 
   <div
+    v-else-if="variant === 'sobre'"
+    class="directus-skeleton-text"
+    aria-hidden="true"
+  >
+    <div class="skeleton-line skeleton-title"></div>
+    <div class="skeleton-line skeleton-text"></div>
+    <div class="skeleton-line skeleton-text"></div>
+    <div class="skeleton-line skeleton-text"></div>
+    <div class="skeleton-line skeleton-text"></div>
+    <div class="skeleton-line skeleton-text short"></div>
+  </div>
+
+  <div
     v-else-if="variant === 'event-cards'"
     class="directus-skeleton-grid"
     aria-hidden="true"
