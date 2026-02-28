@@ -139,12 +139,13 @@ export default defineNuxtComponent({
           (item) => ({
             id: item.id,
             title: String(item.title || item.titulo || "Destaque"),
-            text: this.createExcerpt(item.text || item.texto || item.desc || ""),
+            text: this.createExcerpt(
+              item.text || item.texto || item.desc || "",
+            ),
           }),
         );
       } catch (error) {
-        this.highlightsErrorMessage =
-          "Não foi possível carregar os destaques.";
+        this.highlightsErrorMessage = "Não foi possível carregar os destaques.";
       } finally {
         this.isLoadingHighlights = false;
       }
@@ -435,42 +436,6 @@ export default defineNuxtComponent({
       </p>
     </section>
 
-    <section class="events" aria-label="Próximos eventos">
-      <div class="section-header">
-        <div class="section-top">
-          <h2>Próximos eventos</h2>
-          <NuxtLink class="section-link" to="/eventos">Ler mais</NuxtLink>
-        </div>
-        <p>Atividades planeadas para os próximos meses</p>
-      </div>
-
-      <p v-if="eventosErrorMessage" class="state-message error">
-        {{ eventosErrorMessage }}
-      </p>
-
-      <DirectusSkeleton
-        v-else-if="isLoadingEventos"
-        variant="cards"
-        :count="3"
-      />
-
-      <div v-else-if="proximosEventos.length" class="events-grid">
-        <article
-          v-for="evento in proximosEventos"
-          :key="evento.id || evento.title"
-          class="event-card"
-        >
-          <p class="event-date">{{ evento.dateLabel }}</p>
-          <h3>{{ evento.title }}</h3>
-          <p>{{ evento.text }}</p>
-        </article>
-      </div>
-
-      <p v-else class="state-message">
-        Ainda não existem próximos eventos publicados.
-      </p>
-    </section>
-
     <section class="news-section" aria-label="Notícias">
       <div class="section-header">
         <div class="section-top">
@@ -508,6 +473,42 @@ export default defineNuxtComponent({
 
       <p v-else-if="!isLoadingNews" class="state-message">
         Ainda não existem notícias publicadas.
+      </p>
+    </section>
+
+    <section class="events" aria-label="Próximos eventos">
+      <div class="section-header">
+        <div class="section-top">
+          <h2>Próximos eventos</h2>
+          <NuxtLink class="section-link" to="/eventos">Ler mais</NuxtLink>
+        </div>
+        <p>Atividades planeadas para os próximos meses</p>
+      </div>
+
+      <p v-if="eventosErrorMessage" class="state-message error">
+        {{ eventosErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingEventos"
+        variant="cards"
+        :count="3"
+      />
+
+      <div v-else-if="proximosEventos.length" class="events-grid">
+        <article
+          v-for="evento in proximosEventos"
+          :key="evento.id || evento.title"
+          class="event-card"
+        >
+          <p class="event-date">{{ evento.dateLabel }}</p>
+          <h3>{{ evento.title }}</h3>
+          <p>{{ evento.text }}</p>
+        </article>
+      </div>
+
+      <p v-else class="state-message">
+        Ainda não existem próximos eventos publicados.
       </p>
     </section>
   </div>
