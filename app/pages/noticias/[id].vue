@@ -68,6 +68,8 @@ export default defineNuxtComponent({
       {{ errorMessage }}
     </p>
 
+    <DirectusSkeleton v-else-if="isLoading" variant="article" />
+
     <article v-else-if="noticia" class="news-detail">
       <p class="date">{{ formatDate(noticia.date_created) }}</p>
       <h1>{{ noticia.titulo }}</h1>
@@ -79,7 +81,7 @@ export default defineNuxtComponent({
       <NuxtLink to="/noticias" class="back-link">Voltar às notícias</NuxtLink>
     </article>
 
-    <p v-else-if="!isLoading" class="state-message">Notícia não encontrada.</p>
+    <p v-else class="state-message">Notícia não encontrada.</p>
   </section>
 </template>
 

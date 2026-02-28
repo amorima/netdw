@@ -13,6 +13,7 @@ export default defineNuxtComponent({
       errorMessage: "",
       heroSection: null,
       isHeroReady: false,
+      newsSkeletonCount: 6,
       highlights: [
         {
           title: "Projetos e workshops",
@@ -270,6 +271,8 @@ export default defineNuxtComponent({
       </div>
     </section>
 
+    <DirectusSkeleton v-else-if="!isHeroReady" variant="hero" />
+
     <section class="highlights" aria-label="Destaques">
       <article
         v-for="highlight in highlights"
@@ -324,6 +327,12 @@ export default defineNuxtComponent({
       <p v-if="errorMessage" class="state-message error">
         {{ errorMessage }}
       </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoading"
+        variant="news-cards"
+        :count="newsSkeletonCount"
+      />
 
       <div v-else-if="noticias.length" class="news-grid">
         <article v-for="item in noticias" :key="item.id" class="news-card">
@@ -572,6 +581,7 @@ export default defineNuxtComponent({
   overflow: hidden;
 }
 
+
 .news-card img {
   width: 100%;
   height: 180px;
@@ -629,6 +639,7 @@ export default defineNuxtComponent({
   outline: 2px solid #d2e3ff;
   outline-offset: 2px;
 }
+
 
 @media (max-width: 960px) {
   .highlights,

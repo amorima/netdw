@@ -11,6 +11,7 @@ export default defineNuxtComponent({
     return {
       isLoading: true,
       errorMessage: "",
+      skeletonCount: 6,
       eventos: [],
       tipoLabels: {
         pporto: "P.Porto",
@@ -172,7 +173,12 @@ export default defineNuxtComponent({
     <h1>Agenda do núcleo</h1>
 
     <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
-    <p v-else-if="!isLoading && !hasAnyEvents" class="status-message">
+    <DirectusSkeleton
+      v-else-if="isLoading"
+      variant="event-cards"
+      :count="skeletonCount"
+    />
+    <p v-else-if="!hasAnyEvents" class="status-message">
       Sem eventos de momento.
     </p>
 

@@ -75,11 +75,13 @@ export default defineNuxtComponent({
 <template>
   <section class="container page-section">
     <p class="kicker">Sobre NeTDW</p>
-    <h1>{{ content.title }}</h1>
+    <h1 v-if="!isLoading">{{ content.title }}</h1>
 
     <p v-if="errorMessage">{{ errorMessage }}</p>
 
-    <template v-else-if="!isLoading">
+    <DirectusSkeleton v-else-if="isLoading" variant="text" />
+
+    <template v-else>
       <p>{{ cleanText(content.paragraph1) }}</p>
       <p>{{ cleanText(content.paragraph2) }}</p>
     </template>

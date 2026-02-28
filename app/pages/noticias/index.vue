@@ -11,6 +11,7 @@ export default defineNuxtComponent({
       noticias: [],
       isLoading: true,
       errorMessage: "",
+      skeletonCount: 9,
     };
   },
   created() {
@@ -113,6 +114,12 @@ export default defineNuxtComponent({
       {{ errorMessage }}
     </p>
 
+    <DirectusSkeleton
+      v-else-if="isLoading"
+      variant="news-cards"
+      :count="skeletonCount"
+    />
+
     <div v-else-if="noticias.length" class="grid">
       <article v-for="item in noticias" :key="item.id" class="card">
         <img
@@ -130,7 +137,7 @@ export default defineNuxtComponent({
       </article>
     </div>
 
-    <p v-else-if="!isLoading" class="state-message">
+    <p v-else class="state-message">
       Ainda não existem notícias publicadas.
     </p>
   </section>

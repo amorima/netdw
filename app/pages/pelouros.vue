@@ -11,6 +11,7 @@ export default defineNuxtComponent({
     return {
       isLoading: true,
       errorMessage: "",
+      skeletonCount: 6,
       pelouros: [
         {
           title: "Formação",
@@ -92,7 +93,13 @@ export default defineNuxtComponent({
 
     <p v-if="errorMessage" class="status-message">{{ errorMessage }}</p>
 
-    <div class="grid">
+    <DirectusSkeleton
+      v-if="isLoading"
+      variant="cards"
+      :count="skeletonCount"
+    />
+
+    <div v-else class="grid">
       <article v-for="item in pelouros" :key="item.title" class="card">
         <h2>{{ item.title }}</h2>
         <p>{{ item.text }}</p>
