@@ -456,14 +456,14 @@ export default defineNuxtComponent({
 
     <DirectusSkeleton v-else-if="!isHeroReady" variant="hero" />
 
-    <section class="highlights" aria-label="Destaques">
+    <section class="highlights-section" aria-label="Destaques">
       <p v-if="highlightsErrorMessage" class="state-message error">
         {{ highlightsErrorMessage }}
       </p>
 
       <DirectusSkeleton
         v-else-if="isLoadingHighlights"
-        variant="highlights"
+        variant="home-highlights"
         :count="3"
       />
 
@@ -471,15 +471,16 @@ export default defineNuxtComponent({
         Ainda não existem destaques publicados.
       </p>
 
-      <article
-        v-else
-        v-for="highlight in highlights"
-        :key="highlight.id || highlight.title"
-        class="highlight-card"
-      >
-        <h2>{{ highlight.title }}</h2>
-        <p>{{ highlight.text }}</p>
-      </article>
+      <div v-else class="highlights-grid">
+        <article
+          v-for="highlight in highlights"
+          :key="highlight.id || highlight.title"
+          class="highlight-card"
+        >
+          <h2>{{ highlight.title }}</h2>
+          <p>{{ highlight.text }}</p>
+        </article>
+      </div>
     </section>
 
     <section class="join-cta" aria-label="Inscrição no núcleo">
@@ -515,7 +516,7 @@ export default defineNuxtComponent({
 
       <DirectusSkeleton
         v-else-if="isLoadingPelouros"
-        variant="cards"
+        variant="home-cards"
         :count="3"
       />
 
@@ -549,7 +550,7 @@ export default defineNuxtComponent({
 
       <DirectusSkeleton
         v-else-if="isLoadingNews"
-        variant="news-cards"
+        variant="home-news-cards"
         :count="newsSkeletonCount"
       />
 
@@ -590,7 +591,7 @@ export default defineNuxtComponent({
 
       <DirectusSkeleton
         v-else-if="isLoadingEventos"
-        variant="cards"
+        variant="home-cards"
         :count="3"
       />
 
@@ -836,11 +837,14 @@ export default defineNuxtComponent({
   outline-offset: 2px;
 }
 
-.highlights {
+.highlights-section {
+  margin-bottom: 3.2rem;
+}
+
+.highlights-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
-  margin-bottom: 3.2rem;
 }
 
 .highlight-card {
@@ -1259,7 +1263,7 @@ export default defineNuxtComponent({
 }
 
 @media (max-width: 960px) {
-  .highlights,
+  .highlights-grid,
   .pelouros-grid,
   .events-grid,
   .news-grid {
@@ -1284,7 +1288,7 @@ export default defineNuxtComponent({
     min-height: 320px;
   }
 
-  .highlights,
+  .highlights-grid,
   .pelouros-grid,
   .events-grid,
   .news-grid {

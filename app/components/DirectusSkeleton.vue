@@ -95,18 +95,56 @@ export default defineNuxtComponent({
   </div>
 
   <div
-    v-else-if="variant === 'highlights'"
+    v-else-if="variant === 'home-highlights'"
     class="directus-skeleton-grid"
     aria-hidden="true"
   >
     <article
       v-for="item in items"
       :key="`highlight-skeleton-${item}`"
-      class="directus-skeleton-card"
+      class="directus-skeleton-card home-highlight-card"
     >
       <div class="skeleton-line skeleton-heading"></div>
       <div class="skeleton-line skeleton-text"></div>
       <div class="skeleton-line skeleton-text short"></div>
+    </article>
+  </div>
+
+  <div
+    v-else-if="variant === 'home-cards'"
+    class="directus-skeleton-grid"
+    aria-hidden="true"
+  >
+    <article
+      v-for="item in items"
+      :key="`home-card-skeleton-${item}`"
+      class="directus-skeleton-card home-content-card"
+    >
+      <div class="skeleton-line skeleton-heading"></div>
+      <div class="skeleton-line skeleton-text"></div>
+      <div class="skeleton-line skeleton-text"></div>
+      <div class="skeleton-line skeleton-text short"></div>
+    </article>
+  </div>
+
+  <div
+    v-else-if="variant === 'home-news-cards'"
+    class="directus-skeleton-grid"
+    aria-hidden="true"
+  >
+    <article
+      v-for="item in items"
+      :key="`home-news-skeleton-${item}`"
+      class="directus-skeleton-card no-padding"
+    >
+      <div class="skeleton-image"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line skeleton-date"></div>
+        <div class="skeleton-line skeleton-heading"></div>
+        <div class="skeleton-line skeleton-text"></div>
+        <div class="skeleton-line skeleton-text short"></div>
+        <div class="skeleton-button small"></div>
+      </div>
     </article>
   </div>
 
@@ -301,6 +339,16 @@ export default defineNuxtComponent({
   padding: 1rem;
 }
 
+.home-highlight-card {
+  border-color: #243968;
+  background: rgba(11, 19, 39, 0.78);
+  min-height: 148px;
+}
+
+.home-content-card {
+  min-height: 168px;
+}
+
 .directus-skeleton-card.no-padding {
   overflow: hidden;
   padding: 0;
@@ -370,6 +418,11 @@ export default defineNuxtComponent({
   width: 8.3rem;
   height: 2.2rem;
   margin-top: 0.9rem;
+}
+
+.skeleton-button.small {
+  width: 6.8rem;
+  height: 1.9rem;
 }
 
 .skeleton-actions {
