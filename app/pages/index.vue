@@ -9,11 +9,17 @@ export default defineNuxtComponent({
   data() {
     return {
       noticias: [],
-      isLoading: true,
-      errorMessage: "",
+      pelourosPreview: [],
+      proximosEventos: [],
+      isLoadingNews: true,
+      isLoadingPelouros: true,
+      isLoadingEventos: true,
+      newsErrorMessage: "",
+      pelourosErrorMessage: "",
+      eventosErrorMessage: "",
       heroSection: null,
       isHeroReady: false,
-      newsSkeletonCount: 6,
+      newsSkeletonCount: 3,
       highlights: [
         {
           title: "Projetos e workshops",
@@ -28,45 +34,12 @@ export default defineNuxtComponent({
           text: "Pontes com empresas, eventos e oportunidades ligadas ao desenvolvimento web.",
         },
       ],
-      pelourosPreview: [
-        {
-          title: "Formação",
-          text: "Sessões técnicas e partilha de boas práticas de desenvolvimento web.",
-        },
-        {
-          title: "Eventos",
-          text: "Organização de talks, meetups e atividades abertas à comunidade.",
-        },
-        {
-          title: "Comunicação",
-          text: "Divulgação de notícias, oportunidades e projetos do núcleo.",
-        },
-        {
-          title: "Parcerias",
-          text: "Contacto com entidades externas para apoiar iniciativas e carreira.",
-        },
-      ],
-      proximosEventos: [
-        {
-          title: "Sessão de Onboarding",
-          date: "Março",
-          text: "Apresentação do núcleo e das oportunidades para novos membros.",
-        },
-        {
-          title: "Workshop Frontend",
-          date: "Abril",
-          text: "Workshop prático sobre interfaces web e boas práticas de UX/UI.",
-        },
-        {
-          title: "Mesa Redonda Tech",
-          date: "Maio",
-          text: "Conversa com convidados sobre tendências em desenvolvimento web.",
-        },
-      ],
     };
   },
   created() {
     this.fetchHeroSection();
+    this.fetchPelourosPreview();
+    this.fetchProximosEventos();
     this.fetchNoticias();
   },
   computed: {
@@ -134,8 +107,8 @@ export default defineNuxtComponent({
       }
     },
     async fetchNoticias() {
-      this.isLoading = true;
-      this.errorMessage = "";
+      this.isLoadingNews = true;
+      this.newsErrorMessage = "";
       const { start } = useGlobalLoading();
       const stopLoading = start();
 
@@ -143,17 +116,124 @@ export default defineNuxtComponent({
         const resultado = await directus.request(
           readItems("noticias", {
             sort: ["-date_created"],
-            limit: 6,
+            limit: 3,
           }),
         );
 
         this.noticias = Array.isArray(resultado) ? resultado : [];
       } catch (error) {
-        this.errorMessage = "Não foi possível carregar as notícias.";
+        this.newsErrorMessage = "Não foi possível carregar as notícias.";
       } finally {
-        this.isLoading = false;
+        this.isLoadingNews = false;
         stopLoading();
       }
+    },
+    async fetchPelourosPreview() {
+      this.isLoadingPelouros = true;
+      this.pelourosErrorMessage = "";
+
+      try {
+        const resultado = await directus.request(
+          readItems("pelouros", {
+            filter: {
+              status: {
+                _eq: "published",
+              },
+            },
+            sort: ["sort", "-date_created"],
+            limit: 24,
+          }),
+        );
+
+        const allPelouros = (Array.isArray(resultado) ? resultado : []).map(
+          (item) => ({
+            id: item.id,
+            title: String(item.titulo || item.title || item.nome || "Pelouro"),
+            text: this.createExcerpt(
+              item.desc ||
+                item.texto ||
+                item.descricao ||
+                item.description ||
+                item.conteudo ||
+                "",
+            ),
+          }),
+        );
+
+        this.pelourosPreview = this.pickRandomItems(allPelouros, 3);
+      } catch (error) {
+        this.pelourosErrorMessage =
+          "Não foi possível carregar os pelouros em destaque.";
+      } finally {
+        this.isLoadingPelouros = false;
+      }
+    },
+    async fetchProximosEventos() {
+      this.isLoadingEventos = true;
+      this.eventosErrorMessage = "";
+
+      try {
+        const resultado = await directus.request(
+          readItems("agenda", {
+            filter: {
+              status: {
+                _eq: "published",
+              },
+            },
+            sort: ["data_evento", "sort", "-date_created"],
+            limit: 48,
+          }),
+        );
+
+        const now = Date.now();
+        const parsedEvents = (Array.isArray(resultado) ? resultado : [])
+          .map((item) => {
+            const rawDate =
+              item.data_evento || item.data || item.date || item.mes || "";
+            const date = new Date(rawDate);
+            const timestamp = Number.isNaN(date.getTime())
+              ? null
+              : date.getTime();
+
+            return {
+              id: item.id,
+              title: String(item.titulo || item.title || item.nome || "Evento"),
+              timestamp,
+              dateLabel: this.formatDate(rawDate),
+              text: this.createExcerpt(
+                item.texto ||
+                  item.descricao ||
+                  item.description ||
+                  item.conteudo ||
+                  item.content ||
+                  "",
+              ),
+            };
+          })
+          .filter((item) => item.timestamp !== null && item.timestamp >= now)
+          .sort(
+            (firstItem, secondItem) =>
+              firstItem.timestamp - secondItem.timestamp,
+          )
+          .slice(0, 3);
+
+        this.proximosEventos = parsedEvents;
+      } catch (error) {
+        this.eventosErrorMessage =
+          "Não foi possível carregar os próximos eventos.";
+      } finally {
+        this.isLoadingEventos = false;
+      }
+    },
+    pickRandomItems(items, count) {
+      const copy = [...items];
+
+      for (let index = copy.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
+      }
+
+      return copy.slice(0, count);
     },
     getImageUrl(fileId) {
       if (!fileId) {
@@ -286,50 +366,89 @@ export default defineNuxtComponent({
 
     <section class="pelouros" aria-label="Pelouros">
       <div class="section-header">
-        <h2>Pelouros em destaque</h2>
+        <div class="section-top">
+          <h2>Pelouros em destaque</h2>
+          <NuxtLink class="section-link" to="/pelouros">Ler mais</NuxtLink>
+        </div>
         <p>Áreas de atuação para apoiar estudantes e dinamizar a comunidade</p>
       </div>
-      <div class="pelouros-grid">
+
+      <p v-if="pelourosErrorMessage" class="state-message error">
+        {{ pelourosErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingPelouros"
+        variant="cards"
+        :count="3"
+      />
+
+      <div v-else-if="pelourosPreview.length" class="pelouros-grid">
         <article
           v-for="pelouro in pelourosPreview"
-          :key="pelouro.title"
+          :key="pelouro.id || pelouro.title"
           class="pelouro-card"
         >
           <h3>{{ pelouro.title }}</h3>
           <p>{{ pelouro.text }}</p>
         </article>
       </div>
+
+      <p v-else class="state-message">
+        Ainda não existem pelouros ativos publicados.
+      </p>
     </section>
 
     <section class="events" aria-label="Próximos eventos">
       <div class="section-header">
-        <h2>Próximos eventos</h2>
+        <div class="section-top">
+          <h2>Próximos eventos</h2>
+          <NuxtLink class="section-link" to="/eventos">Ler mais</NuxtLink>
+        </div>
         <p>Atividades planeadas para os próximos meses</p>
       </div>
-      <div class="events-grid">
+
+      <p v-if="eventosErrorMessage" class="state-message error">
+        {{ eventosErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingEventos"
+        variant="cards"
+        :count="3"
+      />
+
+      <div v-else-if="proximosEventos.length" class="events-grid">
         <article
           v-for="evento in proximosEventos"
-          :key="evento.title"
+          :key="evento.id || evento.title"
           class="event-card"
         >
-          <p class="event-date">{{ evento.date }}</p>
+          <p class="event-date">{{ evento.dateLabel }}</p>
           <h3>{{ evento.title }}</h3>
           <p>{{ evento.text }}</p>
         </article>
       </div>
+
+      <p v-else class="state-message">
+        Ainda não existem próximos eventos publicados.
+      </p>
     </section>
 
     <section class="news-section" aria-label="Notícias">
       <div class="section-header">
-        <h2>Últimas notícias</h2>
+        <div class="section-top">
+          <h2>Últimas notícias</h2>
+          <NuxtLink class="section-link" to="/noticias">Ler mais</NuxtLink>
+        </div>
       </div>
 
-      <p v-if="errorMessage" class="state-message error">
-        {{ errorMessage }}
+      <p v-if="newsErrorMessage" class="state-message error">
+        {{ newsErrorMessage }}
       </p>
 
       <DirectusSkeleton
-        v-else-if="isLoading"
+        v-else-if="isLoadingNews"
         variant="news-cards"
         :count="newsSkeletonCount"
       />
@@ -351,7 +470,7 @@ export default defineNuxtComponent({
         </article>
       </div>
 
-      <p v-else-if="!isLoading" class="state-message">
+      <p v-else-if="!isLoadingNews" class="state-message">
         Ainda não existem notícias publicadas.
       </p>
     </section>
@@ -518,9 +637,39 @@ export default defineNuxtComponent({
   margin-bottom: 1.1rem;
 }
 
+.section-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
 .section-header h2 {
   margin: 0;
   font-size: 1.55rem;
+}
+
+.section-link {
+  color: rgba(191, 210, 245, 0.82);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.section-link:hover {
+  color: #dce9ff;
+  border-color: rgba(220, 233, 255, 0.5);
+}
+
+.section-link:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
 }
 
 .section-header p {
@@ -663,6 +812,11 @@ export default defineNuxtComponent({
   .events-grid,
   .news-grid {
     grid-template-columns: 1fr;
+  }
+
+  .section-top {
+    align-items: center;
+    gap: 0.55rem;
   }
 }
 </style>
