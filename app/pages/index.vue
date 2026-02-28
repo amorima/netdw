@@ -11,6 +11,8 @@ export default defineNuxtComponent({
       noticias: [],
       isLoading: true,
       errorMessage: "",
+      heroSection: null,
+      isHeroReady: false,
       highlights: [
         {
           title: "Projetos e workshops",
@@ -63,9 +65,73 @@ export default defineNuxtComponent({
     };
   },
   created() {
+    this.fetchHeroSection();
     this.fetchNoticias();
   },
+  computed: {
+    heroBackgroundStyle() {
+      if (!this.heroSection) {
+        return {};
+      }
+
+      const backgroundImageUrl = this.getImageUrl(
+        this.heroSection.background_image,
+      );
+
+      return {
+        "--hero-bg-image": `url("${backgroundImageUrl}")`,
+      };
+    },
+    heroButtons() {
+      const buttons = [];
+
+      const firstText = String(this.heroSection.button_1_text || "").trim();
+      const firstLink = String(this.heroSection.button_1_link || "").trim();
+      if (firstText && firstLink) {
+        buttons.push({
+          text: firstText,
+          link: firstLink,
+          variant: "primary",
+        });
+      }
+
+      const secondText = String(this.heroSection.button_2_text || "").trim();
+      const secondLink = String(this.heroSection.button_2_link || "").trim();
+      if (secondText && secondLink) {
+        buttons.push({
+          text: secondText,
+          link: secondLink,
+          variant: "secondary",
+        });
+      }
+
+      return buttons;
+    },
+  },
   methods: {
+    async fetchHeroSection() {
+      try {
+        const resultado = await directus.request(
+          readItems("hero_section", {
+            filter: {
+              status: {
+                _eq: "published",
+              },
+            },
+            sort: ["sort", "-date_created"],
+            limit: 1,
+          }),
+        );
+
+        const item = Array.isArray(resultado) ? resultado[0] : null;
+
+        this.heroSection = item || null;
+      } catch (error) {
+        this.heroSection = null;
+      } finally {
+        this.isHeroReady = true;
+      }
+    },
     async fetchNoticias() {
       this.isLoading = true;
       this.errorMessage = "";
@@ -149,29 +215,58 @@ export default defineNuxtComponent({
         year: "numeric",
       }).format(date);
     },
+    isExternalLink(link) {
+      return /^https?:\/\//i.test(String(link || "").trim());
+    },
   },
 });
 </script>
 
 <template>
   <div class="container home-page">
-    <section class="hero">
-      <p class="hero-kicker">
-        Núcleo de Estudantes de Tecnologias e Desenvolvimento Web
-      </p>
-      <h1>
-        Comunidade tecnológica para aprender, construir e evoluir em conjunto
-      </h1>
-      <p class="hero-description">
-        O NeTDW reúne estudantes com interesse em desenvolvimento web, promove
-        iniciativas práticas e cria pontos de contacto entre academia,
-        comunidade e mercado.
-      </p>
-      <div class="hero-actions">
-        <NuxtLink to="/noticias" class="hero-button">Ver notícias</NuxtLink>
-        <NuxtLink to="/eventos" class="hero-button secondary"
-          >Explorar eventos</NuxtLink
-        >
+    <section
+      v-if="isHeroReady && heroSection"
+      class="hero"
+      :style="heroBackgroundStyle"
+      aria-label="Destaque principal"
+    >
+      <div class="hero-content">
+        <p v-if="heroSection.subtitle" class="hero-kicker">
+          {{ heroSection.subtitle }}
+        </p>
+
+        <h1 class="font-neiko">{{ heroSection.title }}</h1>
+
+        <p v-if="heroSection.description" class="hero-description">
+          {{ heroSection.description }}
+        </p>
+
+        <div v-if="heroButtons.length" class="hero-actions">
+          <template
+            v-for="button in heroButtons"
+            :key="`${button.text}-${button.link}`"
+          >
+            <a
+              v-if="isExternalLink(button.link)"
+              :href="button.link"
+              class="hero-button"
+              :class="{ secondary: button.variant === 'secondary' }"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ button.text }}
+            </a>
+
+            <NuxtLink
+              v-else
+              :to="button.link"
+              class="hero-button"
+              :class="{ secondary: button.variant === 'secondary' }"
+            >
+              {{ button.text }}
+            </NuxtLink>
+          </template>
+        </div>
       </div>
     </section>
 
@@ -265,29 +360,69 @@ export default defineNuxtComponent({
 }
 
 .hero {
-  padding: 2rem 0 2.8rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(121, 157, 235, 0.48);
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  padding: 2.4rem;
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  z-index: 0;
+  background-image: var(--hero-bg-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: scale(1.03);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(rgba(8, 24, 54, 0.7), rgba(10, 31, 67, 0.66));
+}
+
+.hero-content {
+  width: min(760px, 100%);
+  position: relative;
+  z-index: 1;
 }
 
 .hero-kicker {
   margin: 0;
-  color: #85aaff;
-  font-size: 0.95rem;
+  color: #d9e8ff;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .hero h1 {
   margin: 0.7rem 0 1rem;
   max-width: 820px;
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  line-height: 1.07;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: 0.018em;
+  color: #fff;
+  text-wrap: balance;
 }
 
 .hero-description {
   margin: 0;
-  max-width: 760px;
-  color: #c4d3f7;
+  max-width: 640px;
+  color: #d7e6ff;
   line-height: 1.65;
+  font-size: clamp(0.98rem, 1.7vw, 1.1rem);
 }
 
 .hero-actions {
@@ -299,18 +434,44 @@ export default defineNuxtComponent({
 
 .hero-button {
   display: inline-block;
-  padding: 0.74rem 1.1rem;
+  padding: 0.74rem 1.2rem;
   border-radius: 0.6rem;
   text-decoration: none;
   font-weight: 600;
-  color: #09122a;
-  background-color: #84a8ff;
+  color: #06142c;
+  background-color: #c9dcff;
+  border: 1px solid #a9c6ff;
+  transition:
+    box-shadow 0.22s ease,
+    filter 0.22s ease,
+    color 0.22s ease,
+    background-color 0.22s ease,
+    border-color 0.22s ease;
 }
 
 .hero-button.secondary {
-  color: #dce8ff;
-  border: 1px solid #345198;
-  background: rgba(20, 33, 66, 0.7);
+  color: #eaf2ff;
+  border: 1px solid rgba(180, 204, 255, 0.72);
+  background: rgba(22, 47, 96, 0.48);
+}
+
+.hero-button:hover {
+  box-shadow: 0 10px 22px rgba(8, 25, 56, 0.34);
+  filter: brightness(1.03);
+  background-color: #d8e6ff;
+  border-color: #c6dbff;
+}
+
+.hero-button.secondary:hover {
+  background: rgba(35, 68, 131, 0.56);
+  border-color: rgba(209, 224, 255, 0.88);
+  box-shadow: 0 10px 22px rgba(8, 25, 56, 0.34);
+  filter: brightness(1.03);
+}
+
+.hero-button:focus-visible {
+  outline: 2px solid #d6e6ff;
+  outline-offset: 2px;
 }
 
 .highlights {
@@ -451,6 +612,22 @@ export default defineNuxtComponent({
   padding: 0.54rem 0.82rem;
   cursor: pointer;
   text-decoration: none;
+  transition:
+    box-shadow 0.22s ease,
+    filter 0.22s ease,
+    background-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.news-button:hover {
+  box-shadow: 0 9px 18px rgba(30, 68, 145, 0.3);
+  filter: brightness(1.03);
+  background: #95b6ff;
+}
+
+.news-button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
 }
 
 @media (max-width: 960px) {
@@ -465,6 +642,11 @@ export default defineNuxtComponent({
 @media (max-width: 640px) {
   .home-page {
     padding-top: 1.8rem;
+  }
+
+  .hero {
+    padding: 1.6rem 1.15rem;
+    min-height: 320px;
   }
 
   .highlights,

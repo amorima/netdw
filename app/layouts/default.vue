@@ -243,6 +243,21 @@ export default defineNuxtComponent({
   cursor: pointer;
   position: relative;
   z-index: 31;
+  transition:
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.burger-button:hover {
+  border-color: #7ea7ff;
+  background: rgba(37, 64, 119, 0.62);
+  box-shadow: 0 10px 18px rgba(10, 24, 53, 0.28);
+}
+
+.burger-button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
 }
 
 .burger-lines,
@@ -309,14 +324,15 @@ export default defineNuxtComponent({
   background: rgba(19, 32, 63, 0.45);
   transition:
     border-color 0.2s ease,
-    transform 0.2s ease,
-    background-color 0.2s ease;
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
 }
 
 .menu-item:hover {
   border-color: #7ea7ff;
   background: rgba(58, 92, 174, 0.35);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(8, 24, 53, 0.24);
 }
 
 .menu-item.active {

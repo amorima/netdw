@@ -309,10 +309,22 @@ button {
   font-weight: 600;
   padding: 0.6rem 1rem;
   cursor: pointer;
+  transition:
+    box-shadow 0.22s ease,
+    filter 0.22s ease,
+    background-color 0.22s ease,
+    color 0.22s ease;
 }
 
 button:hover {
-  background: #9ab8ff;
+  box-shadow: 0 9px 18px rgba(30, 68, 145, 0.3);
+  filter: brightness(1.03);
+  background: #95b6ff;
+}
+
+button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
 }
 
 button:disabled {
