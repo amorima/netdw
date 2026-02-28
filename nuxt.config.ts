@@ -6,9 +6,13 @@ export default defineNuxtConfig({
     directusUrl: "https://api.netdw.tech",
     directusToken: "",
     directusContactCollection: "contact_submissions",
+    directusInscricaoCollection: "inscricao",
     contactMinFillTimeMs: 3500,
     contactRateLimitWindowMs: 600000,
     contactRateLimitMaxRequests: 5,
+    inscricaoMinFillTimeMs: 3500,
+    inscricaoRateLimitWindowMs: 600000,
+    inscricaoRateLimitMaxRequests: 5,
   },
   app: {
     head: {
