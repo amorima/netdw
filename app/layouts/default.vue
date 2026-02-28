@@ -3,6 +3,7 @@ export default defineNuxtComponent({
   data() {
     return {
       currentYear: new Date().getFullYear(),
+      isMobileMenuOpen: false,
       navigationItems: [
         { label: "Homepage", to: "/" },
         { label: "Sobre NeTDW", to: "/sobre-netdw" },
@@ -27,6 +28,11 @@ export default defineNuxtComponent({
       return this.$route.path;
     },
   },
+  watch: {
+    currentPath() {
+      this.isMobileMenuOpen = false;
+    },
+  },
   methods: {
     isActive(routePath) {
       if (routePath === "/") {
@@ -34,6 +40,12 @@ export default defineNuxtComponent({
       }
 
       return this.currentPath.startsWith(routePath);
+    },
+    toggleMobileMenu() {
+      this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    },
+    closeMobileMenu() {
+      this.isMobileMenuOpen = false;
     },
   },
 });
@@ -47,6 +59,17 @@ export default defineNuxtComponent({
           <img src="/logo_d.svg" alt="Logo NeTDW" class="brand-logo" />
         </NuxtLink>
 
+        <button
+          class="burger-button"
+          type="button"
+          aria-label="Abrir ou fechar menu de navegação"
+          aria-controls="mobile-main-menu"
+          :aria-expanded="String(isMobileMenuOpen)"
+          @click="toggleMobileMenu"
+        >
+          <span class="burger-lines" :class="{ open: isMobileMenuOpen }"></span>
+        </button>
+
         <nav class="menu" aria-label="Navegação principal">
           <NuxtLink
             v-for="item in navigationItems"
@@ -58,6 +81,34 @@ export default defineNuxtComponent({
             {{ item.label }}
           </NuxtLink>
         </nav>
+
+        <Transition name="mobile-menu-fade">
+          <div
+            v-if="isMobileMenuOpen"
+            class="mobile-menu-overlay"
+            @click="closeMobileMenu"
+          ></div>
+        </Transition>
+
+        <Transition name="mobile-menu-slide">
+          <nav
+            v-if="isMobileMenuOpen"
+            id="mobile-main-menu"
+            class="mobile-menu"
+            aria-label="Navegação principal mobile"
+          >
+            <NuxtLink
+              v-for="item in navigationItems"
+              :key="`mobile-${item.to}`"
+              :to="item.to"
+              class="mobile-menu-item"
+              :class="{ active: isActive(item.to) }"
+              @click="closeMobileMenu"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </nav>
+        </Transition>
       </div>
     </header>
 
@@ -180,6 +231,67 @@ export default defineNuxtComponent({
   height: auto;
 }
 
+.burger-button {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #2a3a66;
+  border-radius: 0.85rem;
+  background: rgba(19, 32, 63, 0.55);
+  color: #d8e4ff;
+  cursor: pointer;
+  position: relative;
+  z-index: 31;
+}
+
+.burger-lines,
+.burger-lines::before,
+.burger-lines::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  position: absolute;
+  left: 50%;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.burger-lines {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.burger-lines::before,
+.burger-lines::after {
+  content: "";
+  transform: translateX(-50%);
+}
+
+.burger-lines::before {
+  top: -6px;
+}
+
+.burger-lines::after {
+  top: 6px;
+}
+
+.burger-lines.open {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.burger-lines.open::before {
+  opacity: 0;
+}
+
+.burger-lines.open::after {
+  top: 0;
+  transform: translateX(-50%) rotate(-90deg);
+}
+
 .menu {
   display: flex;
   flex-wrap: wrap;
@@ -210,6 +322,11 @@ export default defineNuxtComponent({
 .menu-item.active {
   border-color: #86abff;
   background: rgba(74, 113, 205, 0.32);
+}
+
+.mobile-menu-overlay,
+.mobile-menu {
+  display: none;
 }
 
 .footer {
@@ -311,13 +428,56 @@ export default defineNuxtComponent({
 
 @media (max-width: 640px) {
   .topbar-content {
-    flex-direction: column;
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
   }
 
   .menu {
-    gap: 0.7rem;
-    justify-content: flex-start;
+    display: none;
+  }
+
+  .burger-button {
+    display: inline-block;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 24;
+    background: rgba(3, 6, 12, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  .mobile-menu {
+    display: grid;
+    gap: 0.5rem;
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    padding: 0.7rem;
+    border: 1px solid #2a3a66;
+    border-radius: 0.95rem;
+    background: rgba(9, 15, 31, 0.96);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  }
+
+  .mobile-menu-item {
+    font-size: 0.95rem;
+    color: #d8e4ff;
+    text-decoration: none;
+    padding: 0.68rem 0.78rem;
+    border: 1px solid #2a3a66;
+    border-radius: 0.7rem;
+    background: rgba(19, 32, 63, 0.45);
+  }
+
+  .mobile-menu-item.active {
+    border-color: #86abff;
+    background: rgba(74, 113, 205, 0.32);
   }
 
   .footer-grid {
@@ -327,5 +487,28 @@ export default defineNuxtComponent({
   .quick-links {
     grid-template-columns: 1fr;
   }
+}
+
+.mobile-menu-fade-enter-active,
+.mobile-menu-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.mobile-menu-fade-enter-from,
+.mobile-menu-fade-leave-to {
+  opacity: 0;
+}
+
+.mobile-menu-slide-enter-active,
+.mobile-menu-slide-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mobile-menu-slide-enter-from,
+.mobile-menu-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>
