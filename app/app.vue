@@ -1,53 +1,49 @@
-<script setup>
-import { createDirectus, rest, readItems } from "@directus/sdk";
-
-const urlDirectus = "https://api.netdw.tech";
-const directus = createDirectus(urlDirectus).with(rest());
-
-const { data: noticias, error } = await useAsyncData("noticias", () => {
-  return directus.request(readItems("noticias"));
-});
-
-const getImageUrl = (fileId) => {
-  if (!fileId) return "https://via.placeholder.com/400x200?text=Sem+Capa";
-  return `${urlDirectus}/assets/${fileId}`;
-};
-</script>
-
 <template>
-  <div style="max-width: 800px; margin: 0 auto; font-family: sans-serif">
-    <h1>Últimas notícias</h1>
-
-    <div v-if="error" style="color: red">
-      Erro ao ligar à API: {{ error.message }}
-    </div>
-
-    <div v-else-if="noticias && noticias.length > 0">
-      <div
-        v-for="item in noticias"
-        :key="item.id"
-        style="
-          margin-bottom: 40px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 20px;
-        "
-      >
-        <img
-          :src="getImageUrl(item.capa)"
-          alt="Capa da notícia"
-          style="
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-            border-radius: 8px;
-          "
-        />
-
-        <h2 style="margin-top: 15px">{{ item.titulo }}</h2>
-        <div v-html="item.conteudo" style="line-height: 1.6; color: #333"></div>
-      </div>
-    </div>
-
-    <p v-else>A carregar notícias...</p>
-  </div>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
+
+<style>
+html,
+body,
+#__nuxt {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #050812;
+}
+
+@font-face {
+  font-family: "Neiko";
+  src: url("/neiko.woff2") format("woff2");
+  font-display: swap;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.font-neiko {
+  font-family:
+    "Neiko",
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+</style>
