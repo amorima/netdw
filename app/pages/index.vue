@@ -12,32 +12,22 @@ export default defineNuxtComponent({
       pelourosPreview: [],
       proximosEventos: [],
       isLoadingNews: true,
+      isLoadingHighlights: true,
       isLoadingPelouros: true,
       isLoadingEventos: true,
       newsErrorMessage: "",
+      highlightsErrorMessage: "",
       pelourosErrorMessage: "",
       eventosErrorMessage: "",
       heroSection: null,
       isHeroReady: false,
       newsSkeletonCount: 3,
-      highlights: [
-        {
-          title: "Projetos e workshops",
-          text: "Iniciativas práticas para reforçar competências técnicas e colaboração.",
-        },
-        {
-          title: "Representação estudantil",
-          text: "Acompanhamos o percurso académico e aproximamos estudantes e curso.",
-        },
-        {
-          title: "Ligação à indústria",
-          text: "Pontes com empresas, eventos e oportunidades ligadas ao desenvolvimento web.",
-        },
-      ],
+      highlights: [],
     };
   },
   created() {
     this.fetchHeroSection();
+    this.fetchHighlights();
     this.fetchPelourosPreview();
     this.fetchProximosEventos();
     this.fetchNoticias();
@@ -126,6 +116,37 @@ export default defineNuxtComponent({
       } finally {
         this.isLoadingNews = false;
         stopLoading();
+      }
+    },
+    async fetchHighlights() {
+      this.isLoadingHighlights = true;
+      this.highlightsErrorMessage = "";
+
+      try {
+        const resultado = await directus.request(
+          readItems("highlights", {
+            filter: {
+              status: {
+                _eq: "published",
+              },
+            },
+            sort: ["sort", "-date_created"],
+            limit: 12,
+          }),
+        );
+
+        this.highlights = (Array.isArray(resultado) ? resultado : []).map(
+          (item) => ({
+            id: item.id,
+            title: String(item.title || item.titulo || "Destaque"),
+            text: this.createExcerpt(item.text || item.texto || item.desc || ""),
+          }),
+        );
+      } catch (error) {
+        this.highlightsErrorMessage =
+          "Não foi possível carregar os destaques.";
+      } finally {
+        this.isLoadingHighlights = false;
       }
     },
     async fetchPelourosPreview() {
@@ -354,9 +375,24 @@ export default defineNuxtComponent({
     <DirectusSkeleton v-else-if="!isHeroReady" variant="hero" />
 
     <section class="highlights" aria-label="Destaques">
+      <p v-if="highlightsErrorMessage" class="state-message error">
+        {{ highlightsErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingHighlights"
+        variant="highlights"
+        :count="3"
+      />
+
+      <p v-else-if="!highlights.length" class="state-message">
+        Ainda não existem destaques publicados.
+      </p>
+
       <article
+        v-else
         v-for="highlight in highlights"
-        :key="highlight.title"
+        :key="highlight.id || highlight.title"
         class="highlight-card"
       >
         <h2>{{ highlight.title }}</h2>

@@ -95,6 +95,22 @@ export default defineNuxtComponent({
   </div>
 
   <div
+    v-else-if="variant === 'highlights'"
+    class="directus-skeleton-grid"
+    aria-hidden="true"
+  >
+    <article
+      v-for="item in items"
+      :key="`highlight-skeleton-${item}`"
+      class="directus-skeleton-card"
+    >
+      <div class="skeleton-line skeleton-heading"></div>
+      <div class="skeleton-line skeleton-text"></div>
+      <div class="skeleton-line skeleton-text short"></div>
+    </article>
+  </div>
+
+  <div
     v-else-if="variant === 'orgaos'"
     class="directus-skeleton-orgaos"
     aria-hidden="true"
