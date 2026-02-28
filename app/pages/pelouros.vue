@@ -1,8 +1,5 @@
 <script>
-import {
-  readFromCollections,
-  pickFirstValue,
-} from "../utils/directus-content";
+import { readFromCollections, pickFirstValue } from "../utils/directus-content";
 import { useGlobalLoading } from "../composables/useGlobalLoading";
 
 export default defineNuxtComponent({
