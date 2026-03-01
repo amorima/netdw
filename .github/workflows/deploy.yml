@@ -69,6 +69,8 @@ jobs:
       - name: Reiniciar serviço netdw
         run: |
           set -e
+          cd /var/www/netdw/app
+
           if [ "$(id -u)" -eq 0 ]; then
             systemctl daemon-reload
             systemctl restart netdw
@@ -78,9 +80,17 @@ jobs:
             sudo -n systemctl restart netdw
             sudo -n systemctl status netdw --no-pager -l
           else
-            echo "Runner sem permissões para reiniciar netdw."
-            echo "Configura sudo NOPASSWD para o utilizador do runner."
-            exit 1
+            echo "Runner sem permissões de systemd, a usar fallback com pm2."
+            set -a
+            . /var/www/netdw/app/.env
+            set +a
+
+            npx --yes pm2 describe netdw >/dev/null 2>&1 \
+              && npx --yes pm2 restart netdw --update-env \
+              || npx --yes pm2 start .output/server/index.mjs --name netdw --cwd /var/www/netdw/app --time
+
+            npx --yes pm2 save
+            npx --yes pm2 list
           fi
 
       - name: Verificar health do chatbot
