@@ -14,6 +14,13 @@ jobs:
       - name: Obtenção do código fonte
         uses: actions/checkout@v4
 
+      - name: Diagnóstico do runner
+        run: |
+          whoami
+          pwd
+          node -v
+          npm -v
+
       - name: Instalação de dependências
         run: npm ci
 
@@ -22,6 +29,7 @@ jobs:
 
       - name: Publicação da aplicação
         run: |
+          set -e
           mkdir -p /var/www/netdw/app
           rsync -a --delete \
             --exclude '.git' \
@@ -29,10 +37,12 @@ jobs:
             --exclude '.nuxt' \
             --exclude '.output' \
             ./ /var/www/netdw/app/
-          cp -r .output /var/www/netdw/app/.output
+          rm -rf /var/www/netdw/app/.output
+          cp -r .output /var/www/netdw/app/
 
       - name: Escrever .env de produção
         run: |
+          set -e
           cat > /var/www/netdw/app/.env <<'EOF'
           NUXT_DIRECTUS_URL=${{ secrets.NUXT_DIRECTUS_URL }}
           NUXT_DIRECTUS_TOKEN=${{ secrets.NUXT_DIRECTUS_TOKEN }}
@@ -52,22 +62,28 @@ jobs:
 
       - name: Instalar dependências de runtime
         run: |
+          set -e
           cd /var/www/netdw/app
           npm ci --omit=dev
 
       - name: Reiniciar serviço netdw
         run: |
-          if command -v sudo >/dev/null 2>&1; then
-            sudo -n systemctl daemon-reload || true
+          set -e
+          if [ "$(id -u)" -eq 0 ]; then
+            systemctl daemon-reload
+            systemctl restart netdw
+            systemctl status netdw --no-pager -l
+          elif command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+            sudo -n systemctl daemon-reload
             sudo -n systemctl restart netdw
             sudo -n systemctl status netdw --no-pager -l
           else
-            systemctl daemon-reload || true
-            systemctl restart netdw
-            systemctl status netdw --no-pager -l
+            echo "Runner sem permissões para reiniciar netdw."
+            echo "Configura sudo NOPASSWD para o utilizador do runner."
+            exit 1
           fi
 
       - name: Verificar health do chatbot
         run: |
           sleep 2
-          curl -fsS http://127.0.0.1:3000/api/chatbot-health
+          curl -fsv http://127.0.0.1:3000/api/chatbot-health
