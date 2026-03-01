@@ -96,4 +96,9 @@ jobs:
       - name: Verificar health do chatbot
         run: |
           sleep 2
-          curl -fsv http://127.0.0.1:3000/api/chatbot-health
+          RESPONSE=$(curl -s http://127.0.0.1:3000/api/chatbot-health)
+          echo "$RESPONSE"
+          if echo "$RESPONSE" | grep -q '"ok":false'; then
+            echo "❌ Health check falhou: Configuração incompleta ou erro interno."
+            exit 1
+          fi
