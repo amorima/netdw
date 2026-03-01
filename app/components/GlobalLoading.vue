@@ -26,9 +26,9 @@ onMounted(() => {
 <style scoped>
 .global-loading {
   position: fixed;
-  right: 1.2rem;
-  bottom: 1.2rem;
-  z-index: 200;
+  top: 4.6rem;
+  right: 1rem;
+  z-index: 35;
   width: 46px;
   height: 46px;
   border-radius: 999px;
@@ -38,6 +38,13 @@ onMounted(() => {
   display: grid;
   place-items: center;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .global-loading {
+    top: 4.2rem;
+    right: 0.75rem;
+  }
 }
 
 .spinner {
