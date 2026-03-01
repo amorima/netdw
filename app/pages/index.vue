@@ -12,32 +12,37 @@ export default defineNuxtComponent({
       pelourosPreview: [],
       proximosEventos: [],
       isLoadingNews: true,
+      isLoadingHighlights: true,
       isLoadingPelouros: true,
       isLoadingEventos: true,
       newsErrorMessage: "",
+      highlightsErrorMessage: "",
       pelourosErrorMessage: "",
       eventosErrorMessage: "",
+      isSignupModalOpen: false,
+      signupFormData: {
+        nome: "",
+        email: "",
+        numeroEstudante: "",
+        anoCurricular: "",
+        pelouro: "membro",
+        company: "",
+      },
+      signupError: "",
+      signupSuccess: "",
+      isSubmittingSignup: false,
+      signupFormStartedAt: Date.now(),
+      anoCurricularOptions: ["1º Ano", "2º Ano", "3º Ano"],
+      pelouroOptions: ["membro"],
       heroSection: null,
       isHeroReady: false,
       newsSkeletonCount: 3,
-      highlights: [
-        {
-          title: "Projetos e workshops",
-          text: "Iniciativas práticas para reforçar competências técnicas e colaboração.",
-        },
-        {
-          title: "Representação estudantil",
-          text: "Acompanhamos o percurso académico e aproximamos estudantes e curso.",
-        },
-        {
-          title: "Ligação à indústria",
-          text: "Pontes com empresas, eventos e oportunidades ligadas ao desenvolvimento web.",
-        },
-      ],
+      highlights: [],
     };
   },
   created() {
     this.fetchHeroSection();
+    this.fetchHighlights();
     this.fetchPelourosPreview();
     this.fetchProximosEventos();
     this.fetchNoticias();
@@ -126,6 +131,38 @@ export default defineNuxtComponent({
       } finally {
         this.isLoadingNews = false;
         stopLoading();
+      }
+    },
+    async fetchHighlights() {
+      this.isLoadingHighlights = true;
+      this.highlightsErrorMessage = "";
+
+      try {
+        const resultado = await directus.request(
+          readItems("highlights", {
+            filter: {
+              status: {
+                _eq: "published",
+              },
+            },
+            sort: ["sort", "-date_created"],
+            limit: 12,
+          }),
+        );
+
+        this.highlights = (Array.isArray(resultado) ? resultado : []).map(
+          (item) => ({
+            id: item.id,
+            title: String(item.title || item.titulo || "Destaque"),
+            text: this.createExcerpt(
+              item.text || item.texto || item.desc || "",
+            ),
+          }),
+        );
+      } catch (error) {
+        this.highlightsErrorMessage = "Não foi possível carregar os destaques.";
+      } finally {
+        this.isLoadingHighlights = false;
       }
     },
     async fetchPelourosPreview() {
@@ -299,6 +336,72 @@ export default defineNuxtComponent({
     isExternalLink(link) {
       return /^https?:\/\//i.test(String(link || "").trim());
     },
+    openSignupModal() {
+      this.signupError = "";
+      this.signupSuccess = "";
+      this.signupFormStartedAt = Date.now();
+      this.isSignupModalOpen = true;
+    },
+    closeSignupModal() {
+      this.isSignupModalOpen = false;
+    },
+    async submitSignupForm() {
+      this.signupError = "";
+      this.signupSuccess = "";
+
+      if (
+        !this.signupFormData.nome.trim() ||
+        !this.signupFormData.email.trim() ||
+        !this.signupFormData.numeroEstudante.trim() ||
+        !this.signupFormData.anoCurricular.trim() ||
+        !this.signupFormData.pelouro.trim()
+      ) {
+        this.signupError = "Preenche todos os campos obrigatórios.";
+        return;
+      }
+
+      this.isSubmittingSignup = true;
+      const { start } = useGlobalLoading();
+      const stopLoading = start();
+
+      try {
+        const response = await $fetch("/api/inscricao", {
+          method: "POST",
+          body: {
+            nome: this.signupFormData.nome,
+            email: this.signupFormData.email,
+            numero_estudante: this.signupFormData.numeroEstudante,
+            ano_curricular: [this.signupFormData.anoCurricular],
+            pelouro: this.signupFormData.pelouro,
+            company: this.signupFormData.company,
+            formStartedAt: this.signupFormStartedAt,
+          },
+        });
+
+        this.signupSuccess = response?.id
+          ? `Inscrição enviada com sucesso. ID: ${response.id}`
+          : "Inscrição enviada com sucesso.";
+
+        this.signupFormData = {
+          nome: "",
+          email: "",
+          numeroEstudante: "",
+          anoCurricular: "",
+          pelouro: "membro",
+          company: "",
+        };
+        this.signupFormStartedAt = Date.now();
+      } catch (error) {
+        const backendMessage =
+          error?.data?.statusMessage || error?.statusMessage;
+        this.signupError =
+          backendMessage ||
+          "Não foi possível enviar a inscrição. Tenta novamente.";
+      } finally {
+        this.isSubmittingSignup = false;
+        stopLoading();
+      }
+    },
   },
 });
 </script>
@@ -353,15 +456,49 @@ export default defineNuxtComponent({
 
     <DirectusSkeleton v-else-if="!isHeroReady" variant="hero" />
 
-    <section class="highlights" aria-label="Destaques">
-      <article
-        v-for="highlight in highlights"
-        :key="highlight.title"
-        class="highlight-card"
-      >
-        <h2>{{ highlight.title }}</h2>
-        <p>{{ highlight.text }}</p>
-      </article>
+    <section class="highlights-section" aria-label="Destaques">
+      <p v-if="highlightsErrorMessage" class="state-message error">
+        {{ highlightsErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingHighlights"
+        variant="home-highlights"
+        :count="3"
+      />
+
+      <p v-else-if="!highlights.length" class="state-message">
+        Ainda não existem destaques publicados.
+      </p>
+
+      <div v-else class="highlights-grid">
+        <article
+          v-for="highlight in highlights"
+          :key="highlight.id || highlight.title"
+          class="highlight-card"
+        >
+          <h2>{{ highlight.title }}</h2>
+          <p>{{ highlight.text }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="join-cta" aria-label="Inscrição no núcleo">
+      <div class="join-cta-content">
+        <p class="join-kicker">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          <span>Participação ativa</span>
+        </p>
+        <h2>Queres fazer parte do NeTDW?</h2>
+        <p>
+          Junta-te ao núcleo e participa em eventos, iniciativas e projetos que
+          fortalecem a comunidade académica.
+        </p>
+      </div>
+
+      <button type="button" class="join-cta-button" @click="openSignupModal">
+        Inscreve-te já
+      </button>
     </section>
 
     <section class="pelouros" aria-label="Pelouros">
@@ -379,7 +516,7 @@ export default defineNuxtComponent({
 
       <DirectusSkeleton
         v-else-if="isLoadingPelouros"
-        variant="cards"
+        variant="home-cards"
         :count="3"
       />
 
@@ -399,42 +536,6 @@ export default defineNuxtComponent({
       </p>
     </section>
 
-    <section class="events" aria-label="Próximos eventos">
-      <div class="section-header">
-        <div class="section-top">
-          <h2>Próximos eventos</h2>
-          <NuxtLink class="section-link" to="/eventos">Ler mais</NuxtLink>
-        </div>
-        <p>Atividades planeadas para os próximos meses</p>
-      </div>
-
-      <p v-if="eventosErrorMessage" class="state-message error">
-        {{ eventosErrorMessage }}
-      </p>
-
-      <DirectusSkeleton
-        v-else-if="isLoadingEventos"
-        variant="cards"
-        :count="3"
-      />
-
-      <div v-else-if="proximosEventos.length" class="events-grid">
-        <article
-          v-for="evento in proximosEventos"
-          :key="evento.id || evento.title"
-          class="event-card"
-        >
-          <p class="event-date">{{ evento.dateLabel }}</p>
-          <h3>{{ evento.title }}</h3>
-          <p>{{ evento.text }}</p>
-        </article>
-      </div>
-
-      <p v-else class="state-message">
-        Ainda não existem próximos eventos publicados.
-      </p>
-    </section>
-
     <section class="news-section" aria-label="Notícias">
       <div class="section-header">
         <div class="section-top">
@@ -449,7 +550,7 @@ export default defineNuxtComponent({
 
       <DirectusSkeleton
         v-else-if="isLoadingNews"
-        variant="news-cards"
+        variant="home-news-cards"
         :count="newsSkeletonCount"
       />
 
@@ -474,6 +575,140 @@ export default defineNuxtComponent({
         Ainda não existem notícias publicadas.
       </p>
     </section>
+
+    <section class="events" aria-label="Próximos eventos">
+      <div class="section-header">
+        <div class="section-top">
+          <h2>Próximos eventos</h2>
+          <NuxtLink class="section-link" to="/eventos">Ler mais</NuxtLink>
+        </div>
+        <p>Atividades planeadas para os próximos meses</p>
+      </div>
+
+      <p v-if="eventosErrorMessage" class="state-message error">
+        {{ eventosErrorMessage }}
+      </p>
+
+      <DirectusSkeleton
+        v-else-if="isLoadingEventos"
+        variant="home-cards"
+        :count="3"
+      />
+
+      <div v-else-if="proximosEventos.length" class="events-grid">
+        <article
+          v-for="evento in proximosEventos"
+          :key="evento.id || evento.title"
+          class="event-card"
+        >
+          <p class="event-date">{{ evento.dateLabel }}</p>
+          <h3>{{ evento.title }}</h3>
+          <p>{{ evento.text }}</p>
+        </article>
+      </div>
+
+      <p v-else class="state-message">
+        Ainda não existem próximos eventos publicados.
+      </p>
+    </section>
+
+    <Transition name="signup-fade">
+      <div
+        v-if="isSignupModalOpen"
+        class="signup-modal-overlay"
+        @click="closeSignupModal"
+      ></div>
+    </Transition>
+
+    <Transition name="signup-modal-slide">
+      <section
+        v-if="isSignupModalOpen"
+        class="signup-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Formulário de inscrição"
+      >
+        <header class="signup-modal-header">
+          <h3>Inscrição no núcleo</h3>
+          <button
+            type="button"
+            class="close-modal-button"
+            aria-label="Fechar modal"
+            @click="closeSignupModal"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <form class="signup-form" @submit.prevent="submitSignupForm">
+          <label>
+            Nome
+            <input v-model="signupFormData.nome" type="text" required />
+          </label>
+
+          <label>
+            Email
+            <input v-model="signupFormData.email" type="email" required />
+          </label>
+
+          <label>
+            Número de estudante
+            <input
+              v-model="signupFormData.numeroEstudante"
+              type="text"
+              required
+            />
+          </label>
+
+          <label>
+            Ano curricular
+            <select v-model="signupFormData.anoCurricular" required>
+              <option disabled value="">Seleciona uma opção</option>
+              <option
+                v-for="option in anoCurricularOptions"
+                :key="option"
+                :value="option"
+              >
+                {{ option }}
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Pelouro de interesse
+            <select v-model="signupFormData.pelouro" required>
+              <option
+                v-for="option in pelouroOptions"
+                :key="`pelouro-${option}`"
+                :value="option"
+              >
+                {{ option }}
+              </option>
+            </select>
+          </label>
+
+          <label class="honeypot" aria-hidden="true">
+            Empresa
+            <input
+              v-model="signupFormData.company"
+              type="text"
+              tabindex="-1"
+              autocomplete="new-password"
+              name="website_url"
+            />
+          </label>
+
+          <p v-if="signupError" class="form-error">{{ signupError }}</p>
+          <p v-if="signupSuccess" class="form-success">{{ signupSuccess }}</p>
+
+          <div class="signup-actions">
+            <button type="submit" :disabled="isSubmittingSignup">
+              {{ isSubmittingSignup ? "A enviar..." : "Submeter inscrição" }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </Transition>
   </div>
 </template>
 
@@ -602,11 +837,14 @@ export default defineNuxtComponent({
   outline-offset: 2px;
 }
 
-.highlights {
+.highlights-section {
+  margin-bottom: 3.2rem;
+}
+
+.highlights-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
-  margin-bottom: 3.2rem;
 }
 
 .highlight-card {
@@ -625,6 +863,74 @@ export default defineNuxtComponent({
   margin: 0.8rem 0 0;
   color: #cbd8f7;
   line-height: 1.5;
+}
+
+.join-cta {
+  margin-bottom: 3.1rem;
+  padding: 3.65rem 0;
+  border-top: 2px solid rgba(161, 195, 255, 0.52);
+  border-bottom: 2px solid rgba(161, 195, 255, 0.52);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.4rem;
+  min-height: 190px;
+}
+
+.join-kicker {
+  margin: 0;
+  color: #aecdff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.join-cta-content h2 {
+  margin: 0.48rem 0 0.65rem;
+  font-size: clamp(1.72rem, 3.2vw, 2.45rem);
+  line-height: 1.15;
+}
+
+.join-cta-content p {
+  margin: 0;
+  color: #cddcfb;
+  max-width: 52ch;
+  line-height: 1.68;
+  font-size: 1.05rem;
+}
+
+.join-cta-button {
+  border: 0;
+  border-radius: 0.7rem;
+  background: linear-gradient(135deg, #8ab0ff, #6f9bff);
+  color: #071128;
+  font-weight: 700;
+  font-size: 0.96rem;
+  padding: 0.78rem 1.18rem;
+  cursor: pointer;
+  text-decoration: none;
+  align-self: center;
+  white-space: nowrap;
+  border: 1px solid #a8c5ff;
+  transition:
+    box-shadow 0.22s ease,
+    filter 0.22s ease,
+    background-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.join-cta-button:hover {
+  box-shadow: 0 12px 24px rgba(30, 68, 145, 0.35);
+  filter: brightness(1.05);
+  background: linear-gradient(135deg, #9bbdff, #7ea8ff);
+}
+
+.join-cta-button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
 }
 
 .pelouros,
@@ -788,12 +1094,187 @@ export default defineNuxtComponent({
   outline-offset: 2px;
 }
 
+.signup-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 9, 21, 0.66);
+  backdrop-filter: blur(3px);
+  z-index: 35;
+}
+
+.signup-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 36;
+  border: 1px solid #2c4277;
+  border-radius: 0.95rem;
+  background: rgba(7, 14, 31, 0.98);
+  box-shadow: 0 16px 36px rgba(4, 12, 30, 0.45);
+  padding: 1rem;
+}
+
+.signup-modal,
+.signup-modal * {
+  box-sizing: border-box;
+}
+
+.signup-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.signup-modal-header h3 {
+  margin: 0;
+  font-size: 1.16rem;
+}
+
+.close-modal-button {
+  border: 1px solid #2f457b;
+  border-radius: 0.6rem;
+  width: 36px;
+  height: 36px;
+  background: rgba(21, 36, 70, 0.75);
+  color: #dce9ff;
+  cursor: pointer;
+  transition:
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.close-modal-button:hover {
+  border-color: #7ea7ff;
+  background: rgba(37, 64, 119, 0.8);
+  box-shadow: 0 10px 18px rgba(10, 24, 53, 0.28);
+}
+
+.close-modal-button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
+}
+
+.signup-form {
+  margin-top: 0.95rem;
+}
+
+.signup-form label {
+  display: block;
+  font-size: 0.92rem;
+  color: #c9d8f8;
+  margin-bottom: 0.8rem;
+  min-width: 0;
+}
+
+.signup-form input,
+.signup-form select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 0.38rem;
+  border: 1px solid #334a83;
+  border-radius: 0.56rem;
+  background: rgba(5, 11, 24, 0.85);
+  color: #e6eefb;
+  padding: 0.65rem 0.7rem;
+  font: inherit;
+}
+
+.signup-actions {
+  margin-top: 0.2rem;
+}
+
+.signup-actions button {
+  border: 0;
+  border-radius: 0.56rem;
+  background: #84a8ff;
+  color: #081229;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition:
+    box-shadow 0.22s ease,
+    filter 0.22s ease,
+    background-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.signup-actions button:hover {
+  box-shadow: 0 9px 18px rgba(30, 68, 145, 0.3);
+  filter: brightness(1.03);
+  background: #95b6ff;
+}
+
+.signup-actions button:focus-visible {
+  outline: 2px solid #d2e3ff;
+  outline-offset: 2px;
+}
+
+.signup-actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-error {
+  margin: 0 0 0.8rem;
+  color: #ffc6c6;
+}
+
+.form-success {
+  margin: 0 0 0.8rem;
+  color: #9fe1b3;
+}
+
+.signup-fade-enter-active,
+.signup-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.signup-fade-enter-from,
+.signup-fade-leave-to {
+  opacity: 0;
+}
+
+.signup-modal-slide-enter-active,
+.signup-modal-slide-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.signup-modal-slide-enter-from,
+.signup-modal-slide-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -45%);
+}
+
 @media (max-width: 960px) {
-  .highlights,
+  .highlights-grid,
   .pelouros-grid,
   .events-grid,
   .news-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .join-cta {
+    grid-template-columns: 1fr;
+    align-items: center;
+    min-height: 0;
+    padding: 1.5rem 0;
   }
 }
 
@@ -807,7 +1288,7 @@ export default defineNuxtComponent({
     min-height: 320px;
   }
 
-  .highlights,
+  .highlights-grid,
   .pelouros-grid,
   .events-grid,
   .news-grid {
@@ -817,6 +1298,11 @@ export default defineNuxtComponent({
   .section-top {
     align-items: center;
     gap: 0.55rem;
+  }
+
+  .signup-modal {
+    width: min(620px, 94vw);
+    padding: 0.92rem;
   }
 }
 </style>

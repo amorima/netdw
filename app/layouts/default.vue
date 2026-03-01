@@ -116,7 +116,7 @@ export default defineNuxtComponent({
       <slot />
     </main>
 
-    <GlobalLoading />
+    <ChatAssistant />
 
     <footer class="footer">
       <div class="container footer-grid">
