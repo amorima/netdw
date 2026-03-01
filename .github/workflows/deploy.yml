@@ -43,7 +43,8 @@ jobs:
 
       - name: Escrever .env de produção
         run: |
-          cat <<EOF > /var/www/netdw/app/.env
+          cat <<'EOF' > /var/www/netdw/app/.env
+          PORT=3001
           NUXT_IAEDU_API_ENDPOINT="${{ secrets.NUXT_IAEDU_API_ENDPOINT }}"
           NUXT_IAEDU_API_KEY="${{ secrets.NUXT_IAEDU_API_KEY }}"
           NUXT_IAEDU_CHANNEL_ID="${{ secrets.NUXT_IAEDU_CHANNEL_ID }}"
@@ -87,7 +88,7 @@ jobs:
       - name: Verificar health do chatbot
         run: |
           sleep 2
-          RESPONSE=$(curl -s http://127.0.0.1:3000/api/chatbot-health)
+          RESPONSE=$(curl -s http://127.0.0.1:3001/api/chatbot-health)
           echo "$RESPONSE"
           if echo "$RESPONSE" | grep -q '"ok":false'; then
             echo "❌ Health check falhou: Configuração incompleta ou erro interno."
