@@ -42,7 +42,7 @@ jobs:
 
       - name: Escrever .env de produção
         run: |
-          sudo tee /var/www/netdw/app/.env <<EOF
+          cat <<EOF > /var/www/netdw/app/.env
           NUXT_DIRECTUS_URL=${{ secrets.NUXT_DIRECTUS_URL }}
           NUXT_DIRECTUS_TOKEN=${{ secrets.NUXT_DIRECTUS_TOKEN }}
           NUXT_DIRECTUS_CONTACT_COLLECTION=${{ secrets.NUXT_DIRECTUS_CONTACT_COLLECTION }}
