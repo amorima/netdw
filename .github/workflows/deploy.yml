@@ -65,10 +65,12 @@ jobs:
 
           if [ "$(id -u)" -eq 0 ]; then
             systemctl daemon-reload
+            systemctl enable netdw
             systemctl restart netdw
             systemctl status netdw --no-pager -l
           elif command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
             sudo -n systemctl daemon-reload
+            sudo -n systemctl enable netdw
             sudo -n systemctl restart netdw
             sudo -n systemctl status netdw --no-pager -l
           else
