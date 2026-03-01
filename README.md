@@ -1,75 +1,80 @@
-# Nuxt Minimal Starter
+# NETDW
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Projeto Nuxt com páginas públicas e endpoints de servidor em `server/api` para chatbot e formulários.
 
-## Setup
-
-Make sure to install dependencies:
+## Desenvolvimento local
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Deploy recomendado (SSR no Ubuntu)
 
-Build the application for production:
+O chatbot depende de variáveis privadas (`NUXT_IAEDU_API_KEY`) e endpoints server-side (`/api/chatbot`).
+Por esse motivo, o deploy deve ser SSR, não estático.
+
+### 1) Preparar serviço no servidor
+
+1. Copiar o ficheiro `deploy/systemd/netdw.service` para `/etc/systemd/system/netdw.service`.
+2. Garantir que existe o diretório `/var/www/netdw/app`.
+3. Ativar o serviço:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+sudo systemctl daemon-reload
+sudo systemctl enable netdw
+sudo systemctl start netdw
+sudo systemctl status netdw
 ```
 
-Locally preview production build:
+### 2) Configurar Nginx
+
+1. Copiar `deploy/nginx/netdw.conf` para `/etc/nginx/sites-available/netdw.conf`.
+2. Criar symlink para `sites-enabled`.
+3. Testar e reiniciar:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+sudo ln -s /etc/nginx/sites-available/netdw.conf /etc/nginx/sites-enabled/netdw.conf
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### 3) Configurar GitHub Secrets
+
+No repositório, adicionar os secrets usados no workflow:
+
+- `NUXT_DIRECTUS_URL`
+- `NUXT_DIRECTUS_TOKEN`
+- `NUXT_DIRECTUS_CONTACT_COLLECTION`
+- `NUXT_DIRECTUS_INSCRICAO_COLLECTION`
+- `NUXT_IAEDU_API_ENDPOINT`
+- `NUXT_IAEDU_API_KEY`
+- `NUXT_IAEDU_CHANNEL_ID`
+- `NUXT_IAEDU_DEFAULT_THREAD_ID`
+- `NUXT_CONTACT_MIN_FILL_TIME_MS`
+- `NUXT_CONTACT_RATE_LIMIT_WINDOW_MS`
+- `NUXT_CONTACT_RATE_LIMIT_MAX_REQUESTS`
+- `NUXT_INSCRICAO_MIN_FILL_TIME_MS`
+- `NUXT_INSCRICAO_RATE_LIMIT_WINDOW_MS`
+- `NUXT_INSCRICAO_RATE_LIMIT_MAX_REQUESTS`
+
+### 4) Workflow de deploy
+
+O workflow `.github/workflows/deploy.yml` já está preparado para:
+
+1. Fazer `npm ci`.
+2. Fazer `npm run build` (SSR).
+3. Publicar em `/var/www/netdw/app`.
+4. Gerar `/var/www/netdw/app/.env` a partir dos Secrets.
+5. Instalar dependências de runtime.
+6. Reiniciar `netdw.service`.
+7. Validar `http://127.0.0.1:3000/api/chatbot-health`.
+
+## Verificação rápida pós deploy
+
+```bash
+curl http://127.0.0.1:3000/api/chatbot-health
+sudo journalctl -u netdw -f
+```
+
+Se o health devolver configuração incompleta, o processo Node arrancou sem variáveis válidas.
