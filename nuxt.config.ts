@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     directusContactCollection: "contact_submissions",
     directusInscricaoCollection: "inscricao",
     iaeduApiEndpoint:
-      "https://api.iaedu.pt/agent-chat//api/v1/agent/cmamvd3n40000c801qeacoad2/stream",
+      "https://api.iaedu.pt/agent-chat/api/v1/agent/cmamvd3n40000c801qeacoad2/stream",
     iaeduApiKey: "",
     iaeduChannelId: "cmjbdlc1r00ytgr01ebwrga95",
     iaeduDefaultThreadId: "c7DSOeeZTQ4injN8-tAIS",
