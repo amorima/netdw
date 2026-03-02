@@ -23,15 +23,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      charset: "utf-8",
-      viewport: "width=device-width, initial-scale=1",
-      title: "Núcleo de Estudantes de Tecnologias e Desenvolvimento Web",
       meta: [
-        {
-          name: "description",
-          content:
-            "Plataforma oficial do NeTDW com notícias, eventos, órgãos, pelouros e contactos para a comunidade de Tecnologias e Desenvolvimento Web.",
-        },
         {
           name: "theme-color",
           content: "#050812",
