@@ -6,11 +6,11 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/netdw/app
-EnvironmentFile=/var/www/netdw/app/.env
+WorkingDirectory=/var/www/netdw
+EnvironmentFile=/var/www/netdw/.env
 Environment=NODE_ENV=production
 Environment=PORT=3000
-ExecStart=/usr/bin/node /var/www/netdw/app/.output/server/index.mjs
+ExecStart=/usr/bin/node /var/www/netdw/.output/server/index.mjs
 Restart=always
 RestartSec=5
 

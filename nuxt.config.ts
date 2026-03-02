@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   srcDir: "app",
   ssr: true,
   devtools: { enabled: true },
+  css: ["~/assets/css/global.css"],
   runtimeConfig: {
     directusUrl: "https://api.netdw.tech",
     directusToken: "",
