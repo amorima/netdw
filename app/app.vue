@@ -5,7 +5,7 @@ useHead({
     {
       name: "description",
       content:
-        "Plataforma oficial do NeTDW com notícias, eventos, órgãos, pelouros e contactos para a comunidade de Tecnologias e Desenvolvimento Web.",
+        "Plataforma oficial do NeTDW com notícias, eventos, órgãos, pelouros e contactos para a comunidade de Tecnologias e Desenvolvimento Web Da escola Superior de Media Artes e Design.",
     },
     { name: "theme-color", content: "#050812" },
   ],
