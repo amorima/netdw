@@ -1,6 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2025-07-15",
+  compatibilityDate: "2024-07-15",
+  srcDir: "app",
+  ssr: true,
   devtools: { enabled: true },
   runtimeConfig: {
     directusUrl: "https://api.netdw.tech",
@@ -21,6 +23,8 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
+      charset: "utf-8",
+      viewport: "width=device-width, initial-scale=1",
       title: "Núcleo de Estudantes de Tecnologias e Desenvolvimento Web",
       meta: [
         {
