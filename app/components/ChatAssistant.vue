@@ -249,7 +249,7 @@ export default defineNuxtComponent({
       >
         <header class="chatbot-header">
           <div class="chatbot-title-wrap">
-            <h3>Assitente NeTDW</h3>
+            <h3>Assistente NeTDW</h3>
             <span class="status-led" :class="ledClass"></span>
           </div>
           <div class="chatbot-header-right">
